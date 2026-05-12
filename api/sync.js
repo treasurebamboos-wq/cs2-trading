@@ -16,35 +16,34 @@ export default async function handler(req, res) {
     const USD_TO_CNY = 7.2;
     const LIMIT_PER_PAGE = 100;
 
-    // 狙击枪列表（Take.Skin把狙击枪放在RIFLES里）
-    const SNIPER_WEAPONS = ['AWP', 'SSG 08', 'SCAR-20', 'G3SG1'];
-
-    // 稀有度映射
+    // 稀有度映射 - 完整对应Buff分类
     const RARITY_MAP = {
-        'Contraband': 'contraband',
-        'Covert': 'covert',
-        'Classified': 'classified',
-        'Restricted': 'restricted',
-        'Mil-Spec Grade': 'milspec',
+        // 武器稀有度
+        'Contraband': 'contraband',     // 违禁
+        'Covert': 'covert',             // 隐秘
+        'Classified': 'classified',     // 保密
+        'Restricted': 'restricted',     // 受限
+        'Mil-Spec Grade': 'milspec',    // 军规级
         'Mil-Spec': 'milspec',
-        'Industrial Grade': 'industrial',
-        'Consumer Grade': 'consumer',
+        'Industrial Grade': 'industrial', // 工业级
+        'Consumer Grade': 'consumer',   // 消费级
         'Base Grade': 'consumer',
-        'High Grade': 'milspec',
-        'Extraordinary': 'extraordinary',
-        'Remarkable': 'classified',
-        'Exotic': 'covert',
-        'Master': 'covert'
+        // 特殊物品稀有度
+        'Extraordinary': 'extraordinary', // 非凡（刀/手套）
+        'Exotic': 'exotic',               // 卓越
+        'Remarkable': 'remarkable',       // 奇异
+        'High Grade': 'highgrade',        // 高级
+        'Master': 'master'                // 大师
     };
 
-    // 武器分类映射
+    // 武器分类映射 - Buff风格：狙击枪归入步枪，霰弹枪和机枪归入重型武器
     const WEAPON_CATEGORY_MAP = {
-        // 狙击枪
-        'AWP': 'sniper', 'SSG 08': 'sniper', 'SCAR-20': 'sniper', 'G3SG1': 'sniper',
-        // 霰弹枪
-        'MAG-7': 'shotgun', 'Nova': 'shotgun', 'Sawed-Off': 'shotgun', 'XM1014': 'shotgun',
-        // 机枪
-        'M249': 'machinegun', 'Negev': 'machinegun'
+        // 狙击枪 → 步枪（Buff把狙击枪和步枪放一起）
+        'AWP': 'rifle', 'SSG 08': 'rifle', 'SCAR-20': 'rifle', 'G3SG1': 'rifle',
+        // 霰弹枪 → 重型武器
+        'MAG-7': 'heavy', 'Nova': 'heavy', 'Sawed-Off': 'heavy', 'XM1014': 'heavy',
+        // 机枪 → 重型武器
+        'M249': 'heavy', 'Negev': 'heavy'
     };
 
     // API分类到本地分类的默认映射
@@ -54,7 +53,7 @@ export default async function handler(req, res) {
         'PISTOLS': 'pistol',
         'KNIVES': 'knife',
         'GLOVES': 'glove',
-        'HEAVY': 'heavy'
+        'HEAVY': 'heavy'  // Take.Skin的HEAVY已经包含霰弹枪和机枪
     };
 
     // 获取单个分类的所有页数据

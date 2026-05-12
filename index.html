@@ -76,16 +76,14 @@
                     <div class="filter-row">
                         <div class="filter-label">类型</div>
                         <div class="filter-tags" id="categoryFilter">
-                            <button class="filter-tag active" data-category="all">全部</button>
+                            <button class="filter-tag active" data-category="all">不限</button>
+                            <button class="filter-tag" data-category="pistol">手枪</button>
+                            <button class="filter-tag" data-category="rifle">步枪</button>
+                            <button class="filter-tag" data-category="smg">微冲</button>
+                            <button class="filter-tag" data-category="heavy">重型武器</button>
                             <button class="filter-tag" data-category="knife">匕首</button>
                             <button class="filter-tag" data-category="glove">手套</button>
-                            <button class="filter-tag" data-category="agent">探员</button>
-                            <button class="filter-tag" data-category="rifle">步枪</button>
-                            <button class="filter-tag" data-category="sniper">狙击步枪</button>
-                            <button class="filter-tag" data-category="smg">冲锋枪</button>
-                            <button class="filter-tag" data-category="shotgun">霰弹枪</button>
-                            <button class="filter-tag" data-category="machinegun">机枪</button>
-                            <button class="filter-tag" data-category="pistol">手枪</button>
+                            <button class="filter-tag" data-category="other">其他</button>
                         </div>
                     </div>
                     <!-- 第二行：具体武器（动态显示） -->
@@ -95,41 +93,48 @@
                             <!-- 由JS动态生成 -->
                         </div>
                     </div>
-                    <!-- 第三行：品质（磨损） -->
+                    <!-- 第三行：品质（稀有度） -->
                     <div class="filter-row">
                         <div class="filter-label">品质</div>
-                        <div class="filter-tags" id="wearFilter">
-                            <button class="filter-tag active" data-wear="all">全部</button>
-                            <button class="filter-tag" data-wear="崭新出厂">崭新出厂</button>
-                            <button class="filter-tag" data-wear="略有磨损">略有磨损</button>
-                            <button class="filter-tag" data-wear="久经沙场">久经沙场</button>
-                            <button class="filter-tag" data-wear="破损不堪">破损不堪</button>
-                            <button class="filter-tag" data-wear="战痕累累">战痕累累</button>
-                        </div>
-                    </div>
-                    <!-- 第四行：类别（稀有度） -->
-                    <div class="filter-row">
-                        <div class="filter-label">类别</div>
                         <div class="filter-tags" id="rarityFilter">
-                            <button class="filter-tag active" data-rarity="all">全部</button>
+                            <button class="filter-tag active" data-rarity="all">不限</button>
                             <button class="filter-tag" data-rarity="contraband" style="--tag-color: #e4ae39">违禁</button>
-                            <button class="filter-tag" data-rarity="extraordinary" style="--tag-color: #ffd700">非凡</button>
                             <button class="filter-tag" data-rarity="covert" style="--tag-color: #eb4b4b">隐秘</button>
                             <button class="filter-tag" data-rarity="classified" style="--tag-color: #d32ce6">保密</button>
                             <button class="filter-tag" data-rarity="restricted" style="--tag-color: #8847ff">受限</button>
                             <button class="filter-tag" data-rarity="milspec" style="--tag-color: #4b69ff">军规级</button>
                             <button class="filter-tag" data-rarity="industrial" style="--tag-color: #5e98d9">工业级</button>
                             <button class="filter-tag" data-rarity="consumer" style="--tag-color: #b0c3d9">消费级</button>
+                            <button class="filter-tag" data-rarity="extraordinary" style="--tag-color: #ffd700">非凡</button>
+                            <button class="filter-tag" data-rarity="exotic" style="--tag-color: #d32ce6">卓越</button>
+                            <button class="filter-tag" data-rarity="remarkable" style="--tag-color: #8847ff">奇异</button>
+                            <button class="filter-tag" data-rarity="highgrade" style="--tag-color: #4b69ff">高级</button>
+                            <button class="filter-tag" data-rarity="master" style="--tag-color: #eb4b4b">大师</button>
                         </div>
                     </div>
-                    <!-- 第五行：StatTrak/纪念品 -->
+                    <!-- 第四行：类别 -->
                     <div class="filter-row">
-                        <div class="filter-label">类型</div>
+                        <div class="filter-label">类别</div>
                         <div class="filter-tags" id="statFilter">
-                            <button class="filter-tag active" data-stat="all">全部</button>
+                            <button class="filter-tag active" data-stat="all">不限</button>
                             <button class="filter-tag" data-stat="normal">普通</button>
-                            <button class="filter-tag" data-stat="stattrak" style="--tag-color: #cf6a32">StatTrak™</button>
                             <button class="filter-tag" data-stat="souvenir" style="--tag-color: #ffcc00">纪念品</button>
+                            <button class="filter-tag" data-stat="stattrak" style="--tag-color: #cf6a32">StatTrak™</button>
+                            <button class="filter-tag" data-stat="star" style="--tag-color: #ffd700">★</button>
+                            <button class="filter-tag" data-stat="star_stattrak" style="--tag-color: #cf6a32">★ StatTrak™</button>
+                        </div>
+                    </div>
+                    <!-- 第五行：外观（磨损） -->
+                    <div class="filter-row">
+                        <div class="filter-label">外观</div>
+                        <div class="filter-tags" id="wearFilter">
+                            <button class="filter-tag active" data-wear="all">不限</button>
+                            <button class="filter-tag" data-wear="崭新出厂">崭新出厂</button>
+                            <button class="filter-tag" data-wear="略有磨损">略有磨损</button>
+                            <button class="filter-tag" data-wear="久经沙场">久经沙场</button>
+                            <button class="filter-tag" data-wear="破损不堪">破损不堪</button>
+                            <button class="filter-tag" data-wear="战痕累累">战痕累累</button>
+                            <button class="filter-tag" data-wear="无涂装">无涂装</button>
                         </div>
                     </div>
                     <!-- 第六行：排序 -->
