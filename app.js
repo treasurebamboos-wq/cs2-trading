@@ -18,43 +18,148 @@ const defaultAccount = {
     likedPosts: [],
 };
 
-// 模拟饰品数据（增加分类信息）
-const mockItems = [
+// ==================== Buff风格分类配置 ====================
+// 武器类型分类
+const WEAPON_TYPES = {
     // 步枪
-    { id: 1, name: 'AK-47 | 二西莫夫', nameEn: 'AK-47 | Asiimov', wear: '久经沙场', category: 'rifle', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjVLj-UM-ZGD7JYLDe1A5NAnW_Ae5wOi-0JC5vJjXmHR9-n51X0aXog/256fx256f', buffPrice: 1580.00, youpinPrice: 1620.00, steamPrice: 2150.00, change24h: 2.5, volume: 1250 },
-    { id: 3, name: 'M4A4 | 龙王', nameEn: 'M4A4 | Howl', wear: '略有磨损', category: 'rifle', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alDL_UhFRd4cJ5nqeT9N-g0Qbs80ZuYG37I9SXcwY3YwvQ-gK4xOy6hJ67tJ7Km3s27yMl4ynfzBazhxxJbONxxavJdkAZJQ/256fx256f', buffPrice: 38500.00, youpinPrice: 39200.00, steamPrice: 52000.00, change24h: 0.8, volume: 45 },
-    { id: 6, name: 'AK-47 | 火神', nameEn: 'AK-47 | Vulcan', wear: '崭新出厂', category: 'rifle', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszOeC9H_9mkhIWFg8j1OO-GqWlD6dN-teHE9Jrsxgzn8hY_YDzwJY_EcgRqNl3T-APoxOu8g57p6JrLwCBh6T5iuyi1hP7Vfw/256fx256f', buffPrice: 2450.00, youpinPrice: 2520.00, steamPrice: 3300.00, change24h: 1.8, volume: 680 },
-    { id: 11, name: 'M4A1-S | 印花集', nameEn: 'M4A1-S | Printstream', wear: '崭新出厂', category: 'rifle', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO3mr-ZkvPLPu_Qx3hu5Mx2gv2Po9ut3w3m8kVkYW_6coeXewM2ZgnS_QC6xO-6jZ68v5zKzXA1vCUq4XrYmEe1n1gSOai-WvI/256fx256f', buffPrice: 1850.00, youpinPrice: 1890.00, steamPrice: 2450.00, change24h: 4.2, volume: 380 },
-    { id: 12, name: 'AK-47 | 血腥运动', nameEn: 'AK-47 | Bloodsport', wear: '崭新出厂', category: 'rifle', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0969i5KPhMj5Nr_Yg2Yf6cYniLrHotqj3VC3_UFqYGH6ctKSIFRtZV7TqFG9xbi-gJG46JnBnHRn7iMh43bVmhG1gR9LOLM4h_KfSELsUaVdN-Ud/256fx256f', buffPrice: 720.00, youpinPrice: 745.00, steamPrice: 980.00, change24h: -0.5, volume: 890 },
+    'AK-47': { category: 'rifle', type: 'ak47', label: 'AK-47' },
+    'M4A4': { category: 'rifle', type: 'm4a4', label: 'M4A4' },
+    'M4A1-S': { category: 'rifle', type: 'm4a1s', label: 'M4A1消音' },
+    'AUG': { category: 'rifle', type: 'aug', label: 'AUG' },
+    'SG 553': { category: 'rifle', type: 'sg553', label: 'SG 553' },
+    'FAMAS': { category: 'rifle', type: 'famas', label: 'FAMAS' },
+    'Galil AR': { category: 'rifle', type: 'galil', label: 'Galil' },
     // 狙击枪
-    { id: 2, name: 'AWP | 二西莫夫', nameEn: 'AWP | Asiimov', wear: '久经沙场', category: 'sniper', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJK9cyzhr-KmsjwPKvBmm5u5cB1g_zMu4qgjgCy_kE9ZWumJIeTdABoN1jS-1m-we_p0MO1u5XJzXA17CA8pSGKWU-9J1I/256fx256f', buffPrice: 890.00, youpinPrice: 910.00, steamPrice: 1180.00, change24h: -1.2, volume: 2100 },
-    { id: 8, name: 'AWP | 龙狼', nameEn: 'AWP | Dragon Lore', wear: '久经沙场', category: 'sniper', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7cqWdQ689jxLzFoIqh0QXg-0VuYj_wLYaccAQ6MlrV-wW6yOy7hZC86s6ayiA26Skq4H_SnEG_0BobbOVpmrXWHFL9SA/256fx256f', buffPrice: 48000.00, youpinPrice: 49500.00, steamPrice: 65000.00, change24h: 1.2, volume: 28 },
-    { id: 13, name: 'AWP | 渐变之色', nameEn: 'AWP | Fade', wear: '崭新出厂', category: 'sniper', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAZh7PLfYQJK9cO_mIGZmOb1PbLummJW4NE_j-rEoYjw0Azk8hFtNmH0JNCUdlc8ZF_T_Ve2k7q90JO0tczMzHpgvnUmtnqIzRzigR4dPLI40-DPEFmcUsMLffPqjg/256fx256f', buffPrice: 3200.00, youpinPrice: 3280.00, steamPrice: 4300.00, change24h: 2.1, volume: 156 },
-    { id: 14, name: 'AWP | 雷击', nameEn: 'AWP | Lightning Strike', wear: '崭新出厂', category: 'sniper', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAZh7PLfYQJP7c-ikZKSqPv9NLPF2GJU7cFOhuDG-oLKhFWyqBJrMWj6JNOXdQU8aVyG81O_lebmgJC5v5_MziQ36CU8pSGKRw7chkY/256fx256f', buffPrice: 1650.00, youpinPrice: 1680.00, steamPrice: 2200.00, change24h: -2.3, volume: 210 },
-    // 手枪
-    { id: 7, name: 'USP-S | 杀意大名', nameEn: 'USP-S | Kill Confirmed', wear: '略有磨损', category: 'pistol', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8jgDLfYkWNF18lwmO7Eu9Wt0A2xrRBtYGj6doLEdQNvNFvY8lnqxO3v1565vZXMySAyvCAgtyvelkTigh5PbLc/256fx256f', buffPrice: 680.00, youpinPrice: 695.00, steamPrice: 920.00, change24h: 0.5, volume: 420 },
-    { id: 9, name: 'Desert Eagle | 印花集', nameEn: 'Desert Eagle | Printstream', wear: '崭新出厂', category: 'pistol', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH7du6kb-HnvD8J_WEzjwJvpUp07uUrN6mjgey-hFpZW-hLdTDJlRqYg7T-VK6w-fs0MS6vM-am3NlvyNxsirUy0Dmgk5NYOQ8h_7NVxzAUFeeB3vq/256fx256f', buffPrice: 1250.00, youpinPrice: 1280.00, steamPrice: 1650.00, change24h: 3.2, volume: 520 },
-    { id: 10, name: 'Glock-18 | 伽马多普勒', nameEn: 'Glock-18 | Gamma Doppler', wear: '崭新出厂', category: 'pistol', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJnY6PnvD7DLbUkmJE5Yt3j7jAotSljgLlrkBuYzr0LY-TJwZqaFyG8wK3xO7mgp-5tZXIznRq6yIn7S2OyxG00xodaLRvhPaeBFD5Hq0DGiU/256fx256f', buffPrice: 2850.00, youpinPrice: 2920.00, steamPrice: 3800.00, change24h: -0.8, volume: 165 },
-    { id: 15, name: 'Desert Eagle | 炽烈之炎', nameEn: 'Desert Eagle | Blaze', wear: '崭新出厂', category: 'pistol', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PLJTjtO7dGzh7-HnvD8DLbUhFRd4cJ5nqfE9tzw0A3nrkBkZmj1doeXdQU5MwnRqVG3yenqgZe8uZ2YyXBqvCMh4SuJzUe3gE5YYOQ8gPvNVxzAUPTCQyVgpQ/256fx256f', buffPrice: 4500.00, youpinPrice: 4620.00, steamPrice: 5900.00, change24h: 1.5, volume: 88 },
-    { id: 16, name: 'P250 | 核子危机', nameEn: 'P250 | Nuclear Threat', wear: '崭新出厂', category: 'pistol', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopuP1FABz7P_NfT5H_9-_lb-YmvXgDKvYkG5Q_NV9j-3Q9ojwxAS1qERlZW6nItORJwFtZl7V-Ae7wu68g5K87J6YwCZmuyUj7XjamxfihBlLcKUx0uDPS7Y/256fx256f', buffPrice: 1890.00, youpinPrice: 1950.00, steamPrice: 2500.00, change24h: -1.8, volume: 65 },
+    'AWP': { category: 'sniper', type: 'awp', label: 'AWP' },
+    'SSG 08': { category: 'sniper', type: 'ssg08', label: 'SSG 08' },
+    'SCAR-20': { category: 'sniper', type: 'scar20', label: 'SCAR-20' },
+    'G3SG1': { category: 'sniper', type: 'g3sg1', label: 'G3SG1' },
     // 冲锋枪
-    { id: 17, name: 'MAC-10 | 霓虹骑士', nameEn: 'MAC-10 | Neon Rider', wear: '崭新出厂', category: 'smg', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJhIWFmfX4Nr_ulGRD78A_jL2To9T02QXgqRVoZDj0Jo6RcgU6aQrRqFS4xL-9h5K4u5-cziN9-n515P2cVA/256fx256f', buffPrice: 125.00, youpinPrice: 128.00, steamPrice: 165.00, change24h: 5.2, volume: 1580 },
-    { id: 18, name: 'MP9 | 黑暗时代', nameEn: 'MP9 | Dark Age', wear: '略有磨损', category: 'smg', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou6r8FA957ODYfTxW-Nmkx7-HnvD8J4Tdl3hU18hzteXI8oThxgTg-kZqMWGnctOVIwdsMFzZ_VS7wue90MTp6p-dzHBqvyEr4HfYlRa30R4aOLI50avJdVBPGL1VEYOi/256fx256f', buffPrice: 85.00, youpinPrice: 88.00, steamPrice: 115.00, change24h: -2.1, volume: 920 },
-    { id: 19, name: 'UMP-45 | 荒野反叛', nameEn: 'UMP-45 | Wild Child', wear: '久经沙场', category: 'smg', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo7e1f1Jf1_L3fDhN49KJlYG0mvLwOq7cqWdQ689j3urHpIn3ilGwrhVrYzuiJYbBdwU9Y1HU-wS3k-u60ce1uczNyyBiuCQj4niJyxa1hBpOPOdx0KGAURBfM1u8iw/256fx256f', buffPrice: 45.00, youpinPrice: 48.00, steamPrice: 62.00, change24h: 1.2, volume: 2100 },
-    // 刀
-    { id: 4, name: '蝴蝶刀 | 多普勒', nameEn: 'Butterfly Knife | Doppler', wear: '崭新出厂', category: 'knife', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPD1PqzBl2Ju5cB1g_zMu42j3gft8kVtZWvwJYPGJwM7NArWqVO7xOfq1pPpupjMm3FquCgg7C7flRzhh0xPPeJvmqnNhApEJ_c/256fx256f', buffPrice: 12800.00, youpinPrice: 13100.00, steamPrice: 17500.00, change24h: -3.5, volume: 180 },
-    { id: 20, name: '爪子刀 | 渐变大理石', nameEn: 'Karambit | Marble Fade', wear: '崭新出厂', category: 'knife', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJl5G0k_jkI7fUhFRB4MRij7j--YXygECLpxI9YG_7ctCTdQRoYw3V_lm7wbi50cS5uJqfn3BiuChz7CuJnRGz0UlKbLVv1PWeBF2dVPfJ5Qfq4w/256fx256f', buffPrice: 9800.00, youpinPrice: 10050.00, steamPrice: 13200.00, change24h: -5.2, volume: 95 },
-    { id: 21, name: 'M9 刺刀 | 虎牙', nameEn: 'M9 Bayonet | Tiger Tooth', wear: '崭新出厂', category: 'knife', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf3ObcGWxSu4ykxL-DkvbiKoTcl2xU18hzteXI8oThxgTg-kZqMWymINWUdw9rMwqErlK5x-bm0ZW4v5udwHIx7z5iuyg4G3-QBA/256fx256f', buffPrice: 7200.00, youpinPrice: 7380.00, steamPrice: 9600.00, change24h: -4.8, volume: 120 },
-    { id: 22, name: '折叠刀 | 多普勒', nameEn: 'Flip Knife | Doppler', wear: '崭新出厂', category: 'knife', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYQJD4eOklY20k_jkI7fUhFRd4cJ5nqeQ9N-niguwr0JlYWqlddKTewE6Mg3Y_VK4kbi90MS4uZTNmyQyuCk8pSGKHfqT8g/256fx256f', buffPrice: 4850.00, youpinPrice: 4980.00, steamPrice: 6500.00, change24h: -2.9, volume: 210 },
-    // 手套
-    { id: 5, name: '运动手套 | 树篱迷宫', nameEn: 'Sport Gloves | Hedge Maze', wear: '久经沙场', category: 'glove', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3Yi5FvISJmYGZnPLmDL3QhmJS78B0j-rX8I_33gXl_URoZWqlJ9PBIFc4Zl7Z81a7wO27hpS86cvPyXox6yMj5HrYmhGyhk9KbeVsgP2fRR8q3pAjPw/256fx256f', buffPrice: 5200.00, youpinPrice: 5350.00, steamPrice: 7100.00, change24h: -8.2, volume: 95 },
-    { id: 23, name: '驾驶手套 | 深红织物', nameEn: 'Driver Gloves | Crimson Weave', wear: '久经沙场', category: 'glove', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJkIGKnv-mKoXXl3Nu5Mx2gv2Pos-m3lGy-0s5NjygJIXHew43M1rVrwK6lO29h5Lq7pjJzSYysyYm4CmIzhaygk4ZcLRvgvvKRgPU/256fx256f', buffPrice: 6800.00, youpinPrice: 6980.00, steamPrice: 9100.00, change24h: -6.5, volume: 68 },
-    { id: 24, name: '裹手 | 屠夫', nameEn: 'Hand Wraps | Slaughter', wear: '略有磨损', category: 'glove', image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxfIe3OdytP4IO6kL-KlvHLP7rDXmhR_NZlj-nS-JjwhBqLuxBqZDqkd9PCJwFtYFvZ-1nrx-rq15-5uJ_OwXExsiUq7X-PzRS10hsdZuBohP7JVxzAUKRyXF9Y/256fx256f', buffPrice: 4200.00, youpinPrice: 4320.00, steamPrice: 5600.00, change24h: -7.1, volume: 82 },
+    'MP9': { category: 'smg', type: 'mp9', label: 'MP9' },
+    'MAC-10': { category: 'smg', type: 'mac10', label: 'MAC-10' },
+    'MP7': { category: 'smg', type: 'mp7', label: 'MP7' },
+    'UMP-45': { category: 'smg', type: 'ump45', label: 'UMP-45' },
+    'P90': { category: 'smg', type: 'p90', label: 'P90' },
+    'PP-Bizon': { category: 'smg', type: 'bizon', label: 'PP-野牛' },
+    'MP5-SD': { category: 'smg', type: 'mp5sd', label: 'MP5-SD' },
+    // 手枪
+    'USP-S': { category: 'pistol', type: 'usps', label: 'USP消音' },
+    'P2000': { category: 'pistol', type: 'p2000', label: 'P2000' },
+    'Glock-18': { category: 'pistol', type: 'glock', label: 'Glock-18' },
+    'P250': { category: 'pistol', type: 'p250', label: 'P250' },
+    'Five-SeveN': { category: 'pistol', type: 'fiveseven', label: '五七' },
+    'Tec-9': { category: 'pistol', type: 'tec9', label: 'Tec-9' },
+    'Desert Eagle': { category: 'pistol', type: 'deagle', label: '沙漠之鹰' },
+    'Dual Berettas': { category: 'pistol', type: 'dualies', label: '双持贝瑞塔' },
+    'CZ75-Auto': { category: 'pistol', type: 'cz75', label: 'CZ75' },
+    'R8 Revolver': { category: 'pistol', type: 'r8', label: 'R8 左轮' },
+    // 霰弹枪
+    'MAG-7': { category: 'shotgun', type: 'mag7', label: 'MAG-7' },
+    'Nova': { category: 'shotgun', type: 'nova', label: 'Nova' },
+    'Sawed-Off': { category: 'shotgun', type: 'sawedoff', label: '截短霰弹枪' },
+    'XM1014': { category: 'shotgun', type: 'xm1014', label: 'XM1014' },
+    // 机枪
+    'M249': { category: 'machinegun', type: 'm249', label: 'M249' },
+    'Negev': { category: 'machinegun', type: 'negev', label: 'Negev' },
+};
+
+// 刀具类型
+const KNIFE_TYPES = {
+    'Karambit': { type: 'karambit', label: '爪子刀' },
+    'M9 Bayonet': { type: 'm9', label: 'M9刺刀' },
+    'Butterfly Knife': { type: 'butterfly', label: '蝴蝶刀' },
+    'Bayonet': { type: 'bayonet', label: '刺刀' },
+    'Flip Knife': { type: 'flip', label: '折叠刀' },
+    'Gut Knife': { type: 'gut', label: '穿肠刀' },
+    'Huntsman Knife': { type: 'huntsman', label: '猎杀者匕首' },
+    'Falchion Knife': { type: 'falchion', label: '弯刀' },
+    'Shadow Daggers': { type: 'shadow', label: '暗影双匕' },
+    'Bowie Knife': { type: 'bowie', label: '鲍伊猎刀' },
+    'Ursus Knife': { type: 'ursus', label: '熊刀' },
+    'Navaja Knife': { type: 'navaja', label: '折刀' },
+    'Stiletto Knife': { type: 'stiletto', label: '短剑' },
+    'Talon Knife': { type: 'talon', label: '锯齿爪刀' },
+    'Classic Knife': { type: 'classic', label: '经典刀' },
+    'Paracord Knife': { type: 'paracord', label: '系绳匕首' },
+    'Survival Knife': { type: 'survival', label: '求生匕首' },
+    'Nomad Knife': { type: 'nomad', label: '流浪者匕首' },
+    'Skeleton Knife': { type: 'skeleton', label: '骷髅匕首' },
+    'Kukri Knife': { type: 'kukri', label: '廓尔喀刀' },
+};
+
+// 手套类型
+const GLOVE_TYPES = {
+    'Sport Gloves': { type: 'sport', label: '运动手套' },
+    'Driver Gloves': { type: 'driver', label: '驾驶手套' },
+    'Hand Wraps': { type: 'handwraps', label: '裹手' },
+    'Moto Gloves': { type: 'moto', label: '摩托手套' },
+    'Specialist Gloves': { type: 'specialist', label: '专业手套' },
+    'Hydra Gloves': { type: 'hydra', label: '九头蛇手套' },
+    'Broken Fang Gloves': { type: 'brokenfang', label: '狂牙手套' },
+};
+
+// 稀有度配置
+const RARITY_CONFIG = {
+    'contraband': { label: '违禁', color: '#e4ae39', order: 1 },
+    'covert': { label: '隐秘', color: '#eb4b4b', order: 2 },
+    'classified': { label: '保密', color: '#d32ce6', order: 3 },
+    'restricted': { label: '受限', color: '#8847ff', order: 4 },
+    'milspec': { label: '军规级', color: '#4b69ff', order: 5 },
+    'industrial': { label: '工业级', color: '#5e98d9', order: 6 },
+    'consumer': { label: '消费级', color: '#b0c3d9', order: 7 },
+    'extraordinary': { label: '非凡', color: '#ffd700', order: 0 },
+};
+
+// 模拟饰品数据（Buff风格完整分类）
+const mockItems = [
+    // ==================== 步枪 ====================
+    { id: 1, name: 'AK-47 | 二西莫夫', nameEn: 'AK-47 | Asiimov', wear: '久经沙场', wearEn: 'ft', category: 'rifle', weapon: 'ak47', rarity: 'covert', collection: '凤凰武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV09-5lpKKqPrxN7LEmyVQ7MEpiLuSrYmnjVLj-UM-ZGD7JYLDe1A5NAnW_Ae5wOi-0JC5vJjXmHR9-n51X0aXog/256fx256f', buffPrice: 1580.00, youpinPrice: 1620.00, steamPrice: 2150.00, change24h: 2.5, volume: 1250 },
+    { id: 3, name: 'M4A4 | 龙王', nameEn: 'M4A4 | Howl', wear: '略有磨损', wearEn: 'mw', category: 'rifle', weapon: 'm4a4', rarity: 'contraband', collection: '猎杀者武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alDL_UhFRd4cJ5nqeT9N-g0Qbs80ZuYG37I9SXcwY3YwvQ-gK4xOy6hJ67tJ7Km3s27yMl4ynfzBazhxxJbONxxavJdkAZJQ/256fx256f', buffPrice: 38500.00, youpinPrice: 39200.00, steamPrice: 52000.00, change24h: 0.8, volume: 45 },
+    { id: 6, name: 'AK-47 | 火神', nameEn: 'AK-47 | Vulcan', wear: '崭新出厂', wearEn: 'fn', category: 'rifle', weapon: 'ak47', rarity: 'covert', collection: '猎杀者武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszOeC9H_9mkhIWFg8j1OO-GqWlD6dN-teHE9Jrsxgzn8hY_YDzwJY_EcgRqNl3T-APoxOu8g57p6JrLwCBh6T5iuyi1hP7Vfw/256fx256f', buffPrice: 2450.00, youpinPrice: 2520.00, steamPrice: 3300.00, change24h: 1.8, volume: 680 },
+    { id: 11, name: 'M4A1-S | 印花集', nameEn: 'M4A1-S | Printstream', wear: '崭新出厂', wearEn: 'fn', category: 'rifle', weapon: 'm4a1s', rarity: 'covert', collection: '蛇咬武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO3mr-ZkvPLPu_Qx3hu5Mx2gv2Po9ut3w3m8kVkYW_6coeXewM2ZgnS_QC6xO-6jZ68v5zKzXA1vCUq4XrYmEe1n1gSOai-WvI/256fx256f', buffPrice: 1850.00, youpinPrice: 1890.00, steamPrice: 2450.00, change24h: 4.2, volume: 380 },
+    { id: 12, name: 'AK-47 | 血腥运动', nameEn: 'AK-47 | Bloodsport', wear: '崭新出厂', wearEn: 'fn', category: 'rifle', weapon: 'ak47', rarity: 'covert', collection: '光谱武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV0969i5KPhMj5Nr_Yg2Yf6cYniLrHotqj3VC3_UFqYGH6ctKSIFRtZV7TqFG9xbi-gJG46JnBnHRn7iMh43bVmhG1gR9LOLM4h_KfSELsUaVdN-Ud/256fx256f', buffPrice: 720.00, youpinPrice: 745.00, steamPrice: 980.00, change24h: -0.5, volume: 890 },
+    { id: 25, name: 'AK-47 | 红线', nameEn: 'AK-47 | Redline', wear: '久经沙场', wearEn: 'ft', category: 'rifle', weapon: 'ak47', rarity: 'classified', collection: '凤凰武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot7HxfDhjxszJemkV092lnYmGmOHLPr7Vn35cpsAm0rvH8I7yjBq3_xFqMDr3JdWVdFI3MArTqAe_we7thMC4v8jJmCZgs_Y/256fx256f', buffPrice: 180.00, youpinPrice: 185.00, steamPrice: 240.00, change24h: 0.3, volume: 5200 },
+    { id: 26, name: 'M4A4 | 黑色魅影', nameEn: 'M4A4 | Neo-Noir', wear: '崭新出厂', wearEn: 'fn', category: 'rifle', weapon: 'm4a4', rarity: 'covert', collection: '棱镜武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uO1gb-Gw_alIKnZkGkG6cYl3rqWptqj2AXi-kdtYG_6J9WQcQVtYQuF-lK_wru60JC5vJ_Om3JrvSV27GGdwUKj5YCXHw/256fx256f', buffPrice: 580.00, youpinPrice: 595.00, steamPrice: 780.00, change24h: 2.1, volume: 620 },
+    // ==================== 狙击枪 ====================
+    { id: 2, name: 'AWP | 二西莫夫', nameEn: 'AWP | Asiimov', wear: '久经沙场', wearEn: 'ft', category: 'sniper', weapon: 'awp', rarity: 'covert', collection: '凤凰武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJK9cyzhr-KmsjwPKvBmm5u5cB1g_zMu4qgjgCy_kE9ZWumJIeTdABoN1jS-1m-we_p0MO1u5XJzXA17CA8pSGKWU-9J1I/256fx256f', buffPrice: 890.00, youpinPrice: 910.00, steamPrice: 1180.00, change24h: -1.2, volume: 2100 },
+    { id: 8, name: 'AWP | 龙狼', nameEn: 'AWP | Dragon Lore', wear: '久经沙场', wearEn: 'ft', category: 'sniper', weapon: 'awp', rarity: 'covert', collection: '眼镜蛇收藏品', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAR17PLfYQJD_9W7m5a0mvLwOq7cqWdQ689jxLzFoIqh0QXg-0VuYj_wLYaccAQ6MlrV-wW6yOy7hZC86s6ayiA26Skq4H_SnEG_0BobbOVpmrXWHFL9SA/256fx256f', buffPrice: 48000.00, youpinPrice: 49500.00, steamPrice: 65000.00, change24h: 1.2, volume: 28 },
+    { id: 13, name: 'AWP | 渐变之色', nameEn: 'AWP | Fade', wear: '崭新出厂', wearEn: 'fn', category: 'sniper', weapon: 'awp', rarity: 'covert', collection: '突围收藏品', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAZh7PLfYQJK9cO_mIGZmOb1PbLummJW4NE_j-rEoYjw0Azk8hFtNmH0JNCUdlc8ZF_T_Ve2k7q90JO0tczMzHpgvnUmtnqIzRzigR4dPLI40-DPEFmcUsMLffPqjg/256fx256f', buffPrice: 3200.00, youpinPrice: 3280.00, steamPrice: 4300.00, change24h: 2.1, volume: 156 },
+    { id: 14, name: 'AWP | 雷击', nameEn: 'AWP | Lightning Strike', wear: '崭新出厂', wearEn: 'fn', category: 'sniper', weapon: 'awp', rarity: 'covert', collection: 'CS:GO武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAZh7PLfYQJP7c-ikZKSqPv9NLPF2GJU7cFOhuDG-oLKhFWyqBJrMWj6JNOXdQU8aVyG81O_lebmgJC5v5_MziQ36CU8pSGKRw7chkY/256fx256f', buffPrice: 1650.00, youpinPrice: 1680.00, steamPrice: 2200.00, change24h: -2.3, volume: 210 },
+    { id: 27, name: 'AWP | 黑色魅影', nameEn: 'AWP | Neo-Noir', wear: '崭新出厂', wearEn: 'fn', category: 'sniper', weapon: 'awp', rarity: 'covert', collection: '棱镜武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpot621FAZt7P_BdjVW4t_jkIGdjsj4MrbUqWZU7Mxkh9bN9J7yjRrh-hFuYm_zIYbHJAM2YF3T_AK-xenm15e06s7AzHtrvSUntynUzEe1gx1LaOVx0v6eDAABwLOZ/256fx256f', buffPrice: 420.00, youpinPrice: 435.00, steamPrice: 560.00, change24h: 1.5, volume: 480 },
+    // ==================== 手枪 ====================
+    { id: 7, name: 'USP-S | 杀意大名', nameEn: 'USP-S | Kill Confirmed', wear: '略有磨损', wearEn: 'mw', category: 'pistol', weapon: 'usps', rarity: 'covert', collection: '伽马武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8jgDLfYkWNF18lwmO7Eu9Wt0A2xrRBtYGj6doLEdQNvNFvY8lnqxO3v1565vZXMySAyvCAgtyvelkTigh5PbLc/256fx256f', buffPrice: 680.00, youpinPrice: 695.00, steamPrice: 920.00, change24h: 0.5, volume: 420 },
+    { id: 9, name: 'Desert Eagle | 印花集', nameEn: 'Desert Eagle | Printstream', wear: '崭新出厂', wearEn: 'fn', category: 'pistol', weapon: 'deagle', rarity: 'covert', collection: '蛇咬武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PDdTjlH7du6kb-HnvD8J_WEzjwJvpUp07uUrN6mjgey-hFpZW-hLdTDJlRqYg7T-VK6w-fs0MS6vM-am3NlvyNxsirUy0Dmgk5NYOQ8h_7NVxzAUFeeB3vq/256fx256f', buffPrice: 1250.00, youpinPrice: 1280.00, steamPrice: 1650.00, change24h: 3.2, volume: 520 },
+    { id: 10, name: 'Glock-18 | 伽马多普勒', nameEn: 'Glock-18 | Gamma Doppler', wear: '崭新出厂', wearEn: 'fn', category: 'pistol', weapon: 'glock', rarity: 'covert', collection: '伽马2号武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJnY6PnvD7DLbUkmJE5Yt3j7jAotSljgLlrkBuYzr0LY-TJwZqaFyG8wK3xO7mgp-5tZXIznRq6yIn7S2OyxG00xodaLRvhPaeBFD5Hq0DGiU/256fx256f', buffPrice: 2850.00, youpinPrice: 2920.00, steamPrice: 3800.00, change24h: -0.8, volume: 165 },
+    { id: 15, name: 'Desert Eagle | 炽烈之炎', nameEn: 'Desert Eagle | Blaze', wear: '崭新出厂', wearEn: 'fn', category: 'pistol', weapon: 'deagle', rarity: 'restricted', collection: '尘2收藏品', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposr-kLAtl7PLJTjtO7dGzh7-HnvD8DLbUhFRd4cJ5nqfE9tzw0A3nrkBkZmj1doeXdQU5MwnRqVG3yenqgZe8uZ2YyXBqvCMh4SuJzUe3gE5YYOQ8gPvNVxzAUPTCQyVgpQ/256fx256f', buffPrice: 4500.00, youpinPrice: 4620.00, steamPrice: 5900.00, change24h: 1.5, volume: 88 },
+    { id: 16, name: 'P250 | 核子危机', nameEn: 'P250 | Nuclear Threat', wear: '崭新出厂', wearEn: 'fn', category: 'pistol', weapon: 'p250', rarity: 'restricted', collection: 'CS:GO武器箱2号', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopuP1FABz7P_NfT5H_9-_lb-YmvXgDKvYkG5Q_NV9j-3Q9ojwxAS1qERlZW6nItORJwFtZl7V-Ae7wu68g5K87J6YwCZmuyUj7XjamxfihBlLcKUx0uDPS7Y/256fx256f', buffPrice: 1890.00, youpinPrice: 1950.00, steamPrice: 2500.00, change24h: -1.8, volume: 65 },
+    { id: 28, name: 'USP-S | 印花集', nameEn: 'USP-S | Printstream', wear: '崭新出厂', wearEn: 'fn', category: 'pistol', weapon: 'usps', rarity: 'classified', collection: '蛇咬武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo6m1FBRp3_bGcjhQ09-jq5WYh8j_OrfdqWhe5sN4mOTE8bP4jVC9vh5yZDqgJoOWIA82ZFDS8wK7lLjrjcO4v5mcynFj7yIm7WGdwUIjWINJow/256fx256f', buffPrice: 320.00, youpinPrice: 328.00, steamPrice: 425.00, change24h: 2.8, volume: 890 },
+    // ==================== 冲锋枪 ====================
+    { id: 17, name: 'MAC-10 | 霓虹骑士', nameEn: 'MAC-10 | Neon Rider', wear: '崭新出厂', wearEn: 'fn', category: 'smg', weapon: 'mac10', rarity: 'classified', collection: '光谱武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7umeldf0Ob3fDxBvYyJhIWFmfX4Nr_ulGRD78A_jL2To9T02QXgqRVoZDj0Jo6RcgU6aQrRqFS4xL-9h5K4u5-cziN9-n515P2cVA/256fx256f', buffPrice: 125.00, youpinPrice: 128.00, steamPrice: 165.00, change24h: 5.2, volume: 1580 },
+    { id: 18, name: 'MP9 | 黑暗时代', nameEn: 'MP9 | Dark Age', wear: '略有磨损', wearEn: 'mw', category: 'smg', weapon: 'mp9', rarity: 'milspec', collection: '光谱武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou6r8FA957ODYfTxW-Nmkx7-HnvD8J4Tdl3hU18hzteXI8oThxgTg-kZqMWGnctOVIwdsMFzZ_VS7wue90MTp6p-dzHBqvyEr4HfYlRa30R4aOLI50avJdVBPGL1VEYOi/256fx256f', buffPrice: 85.00, youpinPrice: 88.00, steamPrice: 115.00, change24h: -2.1, volume: 920 },
+    { id: 19, name: 'UMP-45 | 荒野反叛', nameEn: 'UMP-45 | Wild Child', wear: '久经沙场', wearEn: 'ft', category: 'smg', weapon: 'ump45', rarity: 'milspec', collection: '棱彩武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpoo7e1f1Jf1_L3fDhN49KJlYG0mvLwOq7cqWdQ689j3urHpIn3ilGwrhVrYzuiJYbBdwU9Y1HU-wS3k-u60ce1uczNyyBiuCQj4niJyxa1hBpOPOdx0KGAURBfM1u8iw/256fx256f', buffPrice: 45.00, youpinPrice: 48.00, steamPrice: 62.00, change24h: 1.2, volume: 2100 },
+    { id: 29, name: 'P90 | 二西莫夫', nameEn: 'P90 | Asiimov', wear: '崭新出厂', wearEn: 'fn', category: 'smg', weapon: 'p90', rarity: 'covert', collection: '弯曲猎手武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopuP1FAR17PLfYQJE69C_l4-Zh-L6NL7Um25V4dB8xLjD89qljQfhrRY_ZDj7Jo-QelA7aAuC-VXrxr_u0cfv7p3MnXJj7CEntH-ImEO-1hxLauJxxavIZR_s8g/256fx256f', buffPrice: 380.00, youpinPrice: 390.00, steamPrice: 505.00, change24h: 3.1, volume: 450 },
+    // ==================== 刀 ====================
+    { id: 4, name: '蝴蝶刀 | 多普勒', nameEn: 'Butterfly Knife | Doppler', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'butterfly', rarity: 'extraordinary', collection: '伽马武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf0ebcZThQ6tCvq4GGqPD1PqzBl2Ju5cB1g_zMu42j3gft8kVtZWvwJYPGJwM7NArWqVO7xOfq1pPpupjMm3FquCgg7C7flRzhh0xPPeJvmqnNhApEJ_c/256fx256f', buffPrice: 12800.00, youpinPrice: 13100.00, steamPrice: 17500.00, change24h: -3.5, volume: 180 },
+    { id: 20, name: '爪子刀 | 渐变大理石', nameEn: 'Karambit | Marble Fade', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'karambit', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJl5G0k_jkI7fUhFRB4MRij7j--YXygECLpxI9YG_7ctCTdQRoYw3V_lm7wbi50cS5uJqfn3BiuChz7CuJnRGz0UlKbLVv1PWeBF2dVPfJ5Qfq4w/256fx256f', buffPrice: 9800.00, youpinPrice: 10050.00, steamPrice: 13200.00, change24h: -5.2, volume: 95 },
+    { id: 21, name: 'M9 刺刀 | 虎牙', nameEn: 'M9 Bayonet | Tiger Tooth', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'm9', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf3ObcGWxSu4ykxL-DkvbiKoTcl2xU18hzteXI8oThxgTg-kZqMWymINWUdw9rMwqErlK5x-bm0ZW4v5udwHIx7z5iuyg4G3-QBA/256fx256f', buffPrice: 7200.00, youpinPrice: 7380.00, steamPrice: 9600.00, change24h: -4.8, volume: 120 },
+    { id: 22, name: '折叠刀 | 多普勒', nameEn: 'Flip Knife | Doppler', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'flip', rarity: 'extraordinary', collection: '伽马武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf1f_BYQJD4eOklY20k_jkI7fUhFRd4cJ5nqeQ9N-niguwr0JlYWqlddKTewE6Mg3Y_VK4kbi90MS4uZTNmyQyuCk8pSGKHfqT8g/256fx256f', buffPrice: 4850.00, youpinPrice: 4980.00, steamPrice: 6500.00, change24h: -2.9, volume: 210 },
+    { id: 30, name: '刺刀 | 虎牙', nameEn: 'Bayonet | Tiger Tooth', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'bayonet', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpotLu8JAllx8zJYAJR7dG_hYWFkOTLP7rDRGpdupd307yXpIjz0QLm80tpYzvxLIaXIAc2ZlvRrFe4xOjn0Je86s6by3piuicn4XmImRe0hh9KO-c8hPOfOgPTVfEJnSJt/256fx256f', buffPrice: 5600.00, youpinPrice: 5750.00, steamPrice: 7500.00, change24h: -3.2, volume: 145 },
+    { id: 31, name: '穿肠刀 | 渐变之色', nameEn: 'Gut Knife | Fade', wear: '崭新出厂', wearEn: 'fn', category: 'knife', weapon: 'gut', rarity: 'extraordinary', collection: 'CS:GO武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpovbSsLQJf2PLacDBA5ciJl5e0m_7zO6-fwjwFupNw2OqSoNqm2wy18kZtYDjxI4PGewQ4aFvS_1ftl-vn0Z-1tcianXJrvCM8pSGKvpPZbA/256fx256f', buffPrice: 1850.00, youpinPrice: 1900.00, steamPrice: 2480.00, change24h: -1.5, volume: 280 },
+    // ==================== 手套 ====================
+    { id: 5, name: '运动手套 | 树篱迷宫', nameEn: 'Sport Gloves | Hedge Maze', wear: '久经沙场', wearEn: 'ft', category: 'glove', weapon: 'sport', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3Yi5FvISJmYGZnPLmDL3QhmJS78B0j-rX8I_33gXl_URoZWqlJ9PBIFc4Zl7Z81a7wO27hpS86cvPyXox6yMj5HrYmhGyhk9KbeVsgP2fRR8q3pAjPw/256fx256f', buffPrice: 5200.00, youpinPrice: 5350.00, steamPrice: 7100.00, change24h: -8.2, volume: 95 },
+    { id: 23, name: '驾驶手套 | 深红织物', nameEn: 'Driver Gloves | Crimson Weave', wear: '久经沙场', wearEn: 'ft', category: 'glove', weapon: 'driver', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxf0Ob3djFN79eJkIGKnv-mKoXXl3Nu5Mx2gv2Pos-m3lGy-0s5NjygJIXHew43M1rVrwK6lO29h5Lq7pjJzSYysyYm4CmIzhaygk4ZcLRvgvvKRgPU/256fx256f', buffPrice: 6800.00, youpinPrice: 6980.00, steamPrice: 9100.00, change24h: -6.5, volume: 68 },
+    { id: 24, name: '裹手 | 屠夫', nameEn: 'Hand Wraps | Slaughter', wear: '略有磨损', wearEn: 'mw', category: 'glove', weapon: 'handwraps', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgposbaqKAxfIe3OdytP4IO6kL-KlvHLP7rDXmhR_NZlj-nS-JjwhBqLuxBqZDqkd9PCJwFtYFvZ-1nrx-rq15-5uJ_OwXExsiUq7X-PzRS10hsdZuBohP7JVxzAUKRyXF9Y/256fx256f', buffPrice: 4200.00, youpinPrice: 4320.00, steamPrice: 5600.00, change24h: -7.1, volume: 82 },
+    { id: 32, name: '摩托手套 | 日蚀', nameEn: 'Moto Gloves | Eclipse', wear: '久经沙场', wearEn: 'ft', category: 'glove', weapon: 'moto', rarity: 'extraordinary', collection: '手套武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpopL-zJAt21uH3fTxO0922m4W0k_blPKvBnmJWvdV5m-vW-NugjBrm-xc_Mjr0ItOXdwdqaVuG-APqxO3qhJS1uczMziA26SUmtSzYzkS01AAbbOdoxPOACQLJSaOKPqGD4Q/256fx256f', buffPrice: 3500.00, youpinPrice: 3600.00, steamPrice: 4680.00, change24h: -4.3, volume: 110 },
+    // ==================== 霰弹枪 ====================
+    { id: 33, name: 'MAG-7 | 天马', nameEn: 'MAG-7 | Heaven Guard', wear: '崭新出厂', wearEn: 'fn', category: 'shotgun', weapon: 'mag7', rarity: 'classified', collection: 'CS:GO武器箱2号', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou7uifg5f0v73YjlH4OOyhoTdk6T3Yb-HkzlUv8F0jeHV-oLKhFblrhVsN2qhJYfEJgc3MFnR-Vm6xLy5h5C66M7KnXFl7CVz4H3ZlECz0BwaPuJthfvNHFmIV_E/256fx256f', buffPrice: 65.00, youpinPrice: 68.00, steamPrice: 88.00, change24h: 0.8, volume: 1200 },
+    // ==================== 机枪 ====================
+    { id: 34, name: 'M249 | 鬼影', nameEn: 'M249 | Spectre', wear: '略有磨损', wearEn: 'mw', category: 'machinegun', weapon: 'm249', rarity: 'milspec', collection: '弯曲猎手武器箱', isStatTrak: false, image: 'https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXH5ApeO4YmlhxYQknCRvCo04DEVlxkKgpou-6kejhz2v_Nfz5H_uOhkL-Gw_alIITCmX5d_MdehOzKyoD8j1yg5RJtYzmtI4PGcgQ3ZF7X-VS5x-y-gpa56JvXmCRnvnV0t36LnhW-0QYZPuA50OfbVxzAUOw_SaEz7A/256fx256f', buffPrice: 35.00, youpinPrice: 38.00, steamPrice: 48.00, change24h: -0.5, volume: 650 },
 ];
 
 // 筛选状态
 let filterState = {
     category: 'all',
+    rarity: 'all',
     wear: 'all',
     sort: 'default',
     search: ''
@@ -427,10 +532,13 @@ function renderMarket() {
         // 分类条件
         const matchCategory = filterState.category === 'all' || item.category === filterState.category;
 
+        // 稀有度条件
+        const matchRarity = filterState.rarity === 'all' || item.rarity === filterState.rarity;
+
         // 品质条件
         const matchWear = filterState.wear === 'all' || item.wear === filterState.wear;
 
-        return matchSearch && matchCategory && matchWear;
+        return matchSearch && matchCategory && matchRarity && matchWear;
     });
 
     // 应用排序
@@ -456,7 +564,7 @@ function renderMarket() {
     }
 
     // 显示筛选统计
-    const isFiltered = filterState.category !== 'all' || filterState.wear !== 'all' || filterState.search !== '';
+    const isFiltered = filterState.category !== 'all' || filterState.rarity !== 'all' || filterState.wear !== 'all' || filterState.search !== '';
     statsContainer.innerHTML = `
         <span>共 <span class="count">${filteredItems.length}</span> 件饰品${isFiltered ? '（已筛选）' : ''}</span>
         ${isFiltered ? '<button class="clear-filter" onclick="clearFilters()">清除筛选</button>' : ''}
@@ -468,13 +576,19 @@ function renderMarket() {
         return;
     }
 
-    container.innerHTML = filteredItems.map(item => `
-        <div class="item-card">
+    container.innerHTML = filteredItems.map(item => {
+        const rarityInfo = RARITY_CONFIG[item.rarity] || { label: '普通', color: '#b0c3d9' };
+        return `
+        <div class="item-card" style="--rarity-color: ${rarityInfo.color}">
+            <div class="rarity-bar"></div>
             <img src="${item.image}" alt="${item.name}" onerror="this.style.background='var(--bg-secondary)'" onclick="openChartModal(${item.id})">
             <div class="item-details" onclick="openChartModal(${item.id})">
                 <div>
                     <div class="item-name">${item.name}</div>
-                    <div class="item-wear">${item.wear}</div>
+                    <div class="item-meta">
+                        <span class="item-wear">${item.wear}</span>
+                        <span class="item-rarity" style="color: ${rarityInfo.color}">${rarityInfo.label}</span>
+                    </div>
                 </div>
                 <div class="item-prices">
                     <span class="price-tag buff">Buff ¥${formatNum(item.buffPrice)}</span>
@@ -492,18 +606,21 @@ function renderMarket() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 // 清除所有筛选
 function clearFilters() {
-    filterState = { category: 'all', wear: 'all', sort: 'default', search: '' };
+    filterState = { category: 'all', rarity: 'all', wear: 'all', sort: 'default', search: '' };
 
     // 重置UI
     document.getElementById('searchInput').value = '';
 
     document.querySelectorAll('#categoryFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.category === 'all');
+    });
+    document.querySelectorAll('#rarityFilter .filter-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.dataset.rarity === 'all');
     });
     document.querySelectorAll('#wearFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.wear === 'all');
@@ -1387,6 +1504,16 @@ document.querySelectorAll('#categoryFilter .filter-tag').forEach(tag => {
         document.querySelectorAll('#categoryFilter .filter-tag').forEach(t => t.classList.remove('active'));
         tag.classList.add('active');
         filterState.category = tag.dataset.category;
+        renderMarket();
+    });
+});
+
+// 稀有度筛选
+document.querySelectorAll('#rarityFilter .filter-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+        document.querySelectorAll('#rarityFilter .filter-tag').forEach(t => t.classList.remove('active'));
+        tag.classList.add('active');
+        filterState.rarity = tag.dataset.rarity;
         renderMarket();
     });
 });
