@@ -3,6 +3,9 @@
     "api/sync.js": {
       "maxDuration": 60
     },
+    "api/sync-steam.js": {
+      "maxDuration": 60
+    },
     "api/news.js": {
       "maxDuration": 30
     },
