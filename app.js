@@ -675,8 +675,8 @@ function renderMarket() {
             matchWeapon = itemWeapon === filterWeapon || itemWeapon.includes(filterWeapon) || filterWeapon.includes(itemWeapon);
         }
 
-        // 稀有度条件
-        const matchRarity = filterState.rarity === 'all' || item.rarity === filterState.rarity;
+        // 稀有度条件（如果物品没有稀有度数据，则始终匹配）
+        const matchRarity = filterState.rarity === 'all' || !item.rarity || item.rarity === filterState.rarity;
 
         // 品质/外观条件
         const matchWear = filterState.wear === 'all' || item.wear === filterState.wear;

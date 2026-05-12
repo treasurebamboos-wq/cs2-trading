@@ -56,20 +56,15 @@ export default async function handler(req, res) {
         return RARITY_MAP[key] || 'milspec';
     }
 
-    // 根据价格和分类估算稀有度（因为 Take.Skin API 返回的 rarity 都是 Classified）
+    // 根据分类确定稀有度（Take.Skin API 不返回正确的稀有度）
+    // 刀/手套是非凡，其他暂时不设置具体稀有度，让筛选不生效
     function estimateRarity(price, category, apiCategory) {
         // 刀和手套都是非凡
         if (category === 'knife' || category === 'glove') {
             return 'extraordinary';
         }
-
-        // 根据价格估算（USD价格）
-        if (price >= 100) return 'covert';        // 隐秘 - $100+
-        if (price >= 30) return 'classified';     // 保密 - $30-100
-        if (price >= 10) return 'restricted';     // 受限 - $10-30
-        if (price >= 3) return 'milspec';         // 军规级 - $3-10
-        if (price >= 1) return 'industrial';      // 工业级 - $1-3
-        return 'consumer';                         // 消费级 - <$1
+        // 其他返回空，前端筛选会忽略
+        return '';
     }
 
     // 武器分类映射 - Buff风格：狙击枪归入步枪，霰弹枪和机枪归入重型武器
