@@ -338,6 +338,26 @@ body {
 .search-bar {
     position: relative;
     margin-bottom: 12px;
+    display: flex;
+    gap: 8px;
+}
+
+.btn-sync-items {
+    padding: 10px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.btn-sync-items:hover {
+    background: var(--accent-blue);
+    color: white;
+    border-color: var(--accent-blue);
 }
 
 /* ==================== Buff风格筛选 ==================== */
@@ -463,7 +483,7 @@ body {
 }
 
 .search-bar input {
-    width: 100%;
+    flex: 1;
     padding: 10px 16px 10px 40px;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
