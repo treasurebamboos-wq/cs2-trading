@@ -53,7 +53,15 @@ export default async function handler(req, res) {
         'PISTOLS': 'pistol',
         'KNIVES': 'knife',
         'GLOVES': 'glove',
-        'HEAVY': 'heavy'  // Take.Skin的HEAVY已经包含霰弹枪和机枪
+        'HEAVY': 'heavy',
+        'AGENTS': 'other',       // 探员
+        'STICKERS': 'other',     // 印花
+        'CASES': 'other',        // 武器箱
+        'GRAFFITI': 'other',     // 涂鸦
+        'MUSIC_KITS': 'other',   // 音乐盒
+        'PATCHES': 'other',      // 布章
+        'PINS': 'other',         // 胸针
+        'TOOLS': 'other'         // 工具
     };
 
     // 获取单个分类的所有页数据
@@ -89,9 +97,13 @@ export default async function handler(req, res) {
 
     try {
         const allItems = [];
-        const categories = ['RIFLES', 'PISTOLS', 'SMGS', 'KNIVES', 'GLOVES', 'HEAVY'];
+        // 获取所有分类，包括探员、印花、武器箱等
+        const categories = [
+            'RIFLES', 'PISTOLS', 'SMGS', 'KNIVES', 'GLOVES', 'HEAVY',
+            'AGENTS', 'STICKERS', 'CASES', 'GRAFFITI', 'MUSIC_KITS', 'PATCHES', 'PINS', 'TOOLS'
+        ];
         const maxPg = parseInt(maxPages) || 10;
-        const minPriceVal = parseFloat(minPrice) || 1;
+        const minPriceVal = parseFloat(minPrice) || 0.1; // 降低最低价格门槛
 
         // 并行获取所有分类
         const promises = categories.map(cat => fetchCategory(cat, maxPg));
@@ -103,12 +115,12 @@ export default async function handler(req, res) {
                 // 跳过无价格或价格过低的
                 if (!skin.price || skin.price < minPriceVal) continue;
 
-                const weaponName = skin.weapon?.name || 'Unknown';
+                const weaponName = skin.weapon?.name || '';
                 const apiCategory = skin.apiCategory;
 
                 // 确定分类
                 let itemCategory;
-                if (WEAPON_CATEGORY_MAP[weaponName]) {
+                if (weaponName && WEAPON_CATEGORY_MAP[weaponName]) {
                     itemCategory = WEAPON_CATEGORY_MAP[weaponName];
                 } else {
                     itemCategory = API_CATEGORY_MAP[apiCategory] || 'other';
@@ -121,13 +133,36 @@ export default async function handler(req, res) {
                 // 生成Steam图片URL
                 const imageUrl = skin.image || `https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ9Q1LO5kNoBhSQl-fVOG_wcbQVmJ4IwpWv7j6HhR2sbrJZG9KuoGzlYOdlfb_ZL_Tl2Vf5cB4t7vFoYvx2VHk8xFuYD_yIYPGIQNqYV7VqFPrx-bs0sS6tZvPy3V9-n515isnkH-dhw/256fx256f`;
 
+                // 生成显示名称（武器皮肤用 "武器 | 皮肤" 格式，其他用原名）
+                const displayName = weaponName ? `${weaponName} | ${skin.name}` : skin.name;
+
+                // 确定武器类型slug
+                let weaponSlug = 'other';
+                if (skin.weapon?.slug) {
+                    weaponSlug = skin.weapon.slug;
+                } else if (apiCategory === 'AGENTS') {
+                    weaponSlug = 'agent';
+                } else if (apiCategory === 'STICKERS') {
+                    weaponSlug = 'sticker';
+                } else if (apiCategory === 'CASES') {
+                    weaponSlug = 'case';
+                } else if (apiCategory === 'MUSIC_KITS') {
+                    weaponSlug = 'music-kit';
+                } else if (apiCategory === 'GRAFFITI') {
+                    weaponSlug = 'graffiti';
+                } else if (apiCategory === 'PATCHES') {
+                    weaponSlug = 'patch';
+                } else if (apiCategory === 'PINS') {
+                    weaponSlug = 'pin';
+                }
+
                 allItems.push({
-                    name: `${weaponName} | ${skin.name}`,
-                    nameEn: `${weaponName} | ${skin.name}`,
+                    name: displayName,
+                    nameEn: displayName,
                     slug: skin.slug,
                     category: itemCategory,
-                    weapon: skin.weapon?.slug || 'unknown',
-                    weaponName: weaponName,
+                    weapon: weaponSlug,
+                    weaponName: weaponName || apiCategory,
                     rarity: RARITY_MAP[skin.rarity] || 'milspec',
                     rarityOriginal: skin.rarity,
                     isStatTrak: skin.hasStatTrak || false,

@@ -278,12 +278,14 @@ const WEAPON_BY_CATEGORY = {
     // 其他
     other: [
         { slug: 'agent', name: '探员' },
+        { slug: 'sticker', name: '印花' },
         { slug: 'music-kit', name: '音乐盒' },
         { slug: 'graffiti', name: '涂鸦' },
-        { slug: 'capsule', name: '胶囊' },
         { slug: 'case', name: '武器箱' },
-        { slug: 'pass', name: '通行证' },
         { slug: 'patch', name: '布章' },
+        { slug: 'pin', name: '胸针' },
+        { slug: 'capsule', name: '胶囊' },
+        { slug: 'pass', name: '通行证' },
         { slug: 'package', name: '礼包' },
         { slug: 'tool', name: '工具' },
         { slug: 'souvenir-package', name: '纪念包' },
@@ -1888,10 +1890,10 @@ async function syncItemsFromAPI() {
         // 刷新UI
         updateUI();
 
+        // 更新同步状态显示
+        updateSyncStatus();
+
         // 显示详细统计
-        const statsMsg = Object.entries(data.categoryStats || {})
-            .map(([cat, count]) => `${cat}:${count}`)
-            .join(' ');
         showToast(`✓ 同步成功！共 ${newItems.length} 件饰品`);
 
         console.log('饰品同步完成:', {
@@ -1914,6 +1916,36 @@ function generateSteamImage(slug) {
     return `https://community.cloudflare.steamstatic.com/economy/image/-9a81dlWLwJ2UUGcVs_nsVtzdOEdtWwKGZZLQHTxDZ7I56KU0Zwwo4NUX4oFJZEHLbXQ9Q1LO5kNoBhSQl-fVOG_wcbQVmJ4IwpWv7j6HhR2sbrJZG9KuoGzlYOdlfb_ZL_Tl2Vf5cB4t7vFoYvx2VHk8xFuYD_yIYPGIQNqYV7VqFPrx-bs0sS6tZvPy3V9-n515isnkH-dhw/256fx256f`;
 }
 
+// 更新同步状态显示
+function updateSyncStatus() {
+    const statusEl = document.getElementById('syncStatus');
+    if (!statusEl) return;
+
+    const lastSync = localStorage.getItem(SYNC_TIMESTAMP_KEY);
+    const itemCount = mockItems.length;
+
+    if (lastSync) {
+        const syncDate = new Date(parseInt(lastSync));
+        const now = new Date();
+        const diffHours = Math.floor((now - syncDate) / (1000 * 60 * 60));
+
+        let timeStr;
+        if (diffHours < 1) {
+            const diffMins = Math.floor((now - syncDate) / (1000 * 60));
+            timeStr = diffMins < 1 ? '刚刚' : `${diffMins}分钟前`;
+        } else if (diffHours < 24) {
+            timeStr = `${diffHours}小时前`;
+        } else {
+            const diffDays = Math.floor(diffHours / 24);
+            timeStr = `${diffDays}天前`;
+        }
+
+        statusEl.textContent = `${itemCount}件 · ${timeStr}同步`;
+    } else {
+        statusEl.textContent = `${itemCount}件 · 未同步`;
+    }
+}
+
 // 检查是否需要同步（24小时内不重复同步）
 function checkAndSync() {
     const lastSync = localStorage.getItem(SYNC_TIMESTAMP_KEY);
@@ -1933,6 +1965,9 @@ function checkAndSync() {
         }
     }
 
+    // 更新同步状态显示
+    updateSyncStatus();
+
     // 检查是否需要同步（超过24小时或无数据）
     const needSync = !lastSync ||
                      (Date.now() - parseInt(lastSync)) > 24 * 60 * 60 * 1000 ||
@@ -1949,18 +1984,45 @@ function checkAndSync() {
 // 手动同步按钮
 async function manualSync() {
     const btn = document.querySelector('.btn-sync-items');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '⏳ 同步中...';
-    }
+    if (!btn) return;
+
+    // 防止重复点击
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="sync-spinner"></span> 同步中...';
+    btn.style.pointerEvents = 'none';
 
     try {
-        await syncItemsFromAPI();
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🔄 同步';
+        const success = await syncItemsFromAPI();
+        if (success) {
+            btn.innerHTML = '✅ 完成';
+            btn.style.background = 'var(--accent-green)';
+            btn.style.color = 'white';
+            setTimeout(() => {
+                btn.innerHTML = '🔄 同步';
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
+        } else {
+            btn.innerHTML = '❌ 失败';
+            btn.style.background = 'var(--accent-red)';
+            btn.style.color = 'white';
+            setTimeout(() => {
+                btn.innerHTML = '🔄 同步';
+                btn.style.background = '';
+                btn.style.color = '';
+            }, 2000);
         }
+    } catch (error) {
+        console.error('同步出错:', error);
+        btn.innerHTML = '❌ 错误';
+        setTimeout(() => {
+            btn.innerHTML = '🔄 同步';
+        }, 2000);
+    } finally {
+        btn.disabled = false;
+        btn.style.pointerEvents = '';
     }
 }
 
