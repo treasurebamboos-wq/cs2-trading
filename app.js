@@ -1984,14 +1984,24 @@ async function syncItemsFromAPI() {
     showToast('正在同步饰品数据，请稍候...');
 
     try {
-        // minPrice=0 获取所有饰品，maxPages=30 每个分类获取30页（最多3000个/分类）
-        const response = await fetch(`${API_BASE}/sync?minPrice=0&maxPages=30`);
+        // 使用新的Steam数据源 (ByMykel API - 正确的稀有度和分类)
+        const response = await fetch(`${API_BASE}/sync-steam?minPrice=1&includeOther=false`);
         if (!response.ok) throw new Error('API请求失败');
 
         const data = await response.json();
         if (!data.success || !data.items || data.items.length === 0) {
             throw new Error('未获取到饰品数据');
         }
+
+        // 磨损度映射
+        const wearMap = {
+            'fn': '崭新出厂',
+            'mw': '略有磨损',
+            'ft': '久经沙场',
+            'ww': '破损不堪',
+            'bs': '战痕累累',
+            'vanilla': '无涂装'
+        };
 
         // 转换为mockItems格式
         const newItems = data.items.map((item, index) => {
@@ -2002,10 +2012,9 @@ async function syncItemsFromAPI() {
             const baseVolume = item.prices.steam > 10000 ? 20 : item.prices.steam > 1000 ? 100 : item.prices.steam > 100 ? 500 : 2000;
             const volume = Math.floor(baseVolume * (0.5 + Math.random()));
 
-            // 确定磨损度：武器类有磨损，其他类（印花、武器箱等）为"无涂装"
-            const isWeapon = ['rifle', 'pistol', 'smg', 'heavy', 'knife', 'glove'].includes(item.category);
-            const wear = isWeapon ? '崭新出厂' : '无涂装';
-            const wearEn = isWeapon ? 'fn' : 'vanilla';
+            // 磨损度转换 (API返回英文代码,转成中文)
+            const wearEn = item.wear || 'fn';
+            const wear = wearMap[wearEn] || '崭新出厂';
 
             // 规范化武器 slug（确保格式一致）
             let weaponSlug = item.weapon || 'other';
@@ -2022,7 +2031,10 @@ async function syncItemsFromAPI() {
                 weapon: weaponSlug,
                 weaponName: item.weaponName,
                 rarity: item.rarity || 'milspec',
-                collection: '未知收藏品',
+                rarityColor: item.rarityColor || '#4b69ff',
+                collection: (item.collections && item.collections[0]) || '未知收藏品',
+                collections: item.collections || [],
+                crates: item.crates || [],
                 isStatTrak: item.isStatTrak || false,
                 hasSouvenir: item.hasSouvenir || false,
                 slug: item.slug,
@@ -2031,7 +2043,10 @@ async function syncItemsFromAPI() {
                 youpinPrice: item.prices.youpin,
                 steamPrice: item.prices.steam,
                 change24h: change24h,
-                volume: volume
+                volume: volume,
+                paintIndex: item.paintIndex,
+                minFloat: item.minFloat || 0,
+                maxFloat: item.maxFloat || 1
             };
         });
 
@@ -2043,17 +2058,7 @@ async function syncItemsFromAPI() {
         mockItems.length = 0;
         mockItems.push(...newItems);
 
-        // 尝试修正稀有度（后台异步执行，不阻塞UI）
-        fixRarityData(newItems).then(() => {
-            console.log('稀有度修正完成');
-            // 重新保存和刷新UI
-            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(mockItems));
-            updateUI();
-        }).catch(err => {
-            console.warn('稀有度修正失败:', err.message);
-        });
-
-        // 刷新UI
+        // 刷新UI (新API已包含正确的稀有度,无需修正)
         updateUI();
 
         // 更新同步状态显示
@@ -2064,8 +2069,8 @@ async function syncItemsFromAPI() {
 
         console.log('饰品同步完成:', {
             count: newItems.length,
-            categoryStats: data.categoryStats,
-            rarityStats: data.rarityStats,
+            stats: data.stats,
+            source: data.source,
             timestamp: new Date().toISOString()
         });
 
