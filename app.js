@@ -98,8 +98,9 @@ const GLOVE_TYPES = {
     'Broken Fang Gloves': { type: 'brokenfang', label: '狂牙手套' },
 };
 
-// 稀有度配置
+// 稀有度配置（完整对应Buff和API的所有稀有度）
 const RARITY_CONFIG = {
+    // 武器稀有度
     'contraband': { label: '违禁', color: '#e4ae39', order: 1 },
     'covert': { label: '隐秘', color: '#eb4b4b', order: 2 },
     'classified': { label: '保密', color: '#d32ce6', order: 3 },
@@ -107,7 +108,14 @@ const RARITY_CONFIG = {
     'milspec': { label: '军规级', color: '#4b69ff', order: 5 },
     'industrial': { label: '工业级', color: '#5e98d9', order: 6 },
     'consumer': { label: '消费级', color: '#b0c3d9', order: 7 },
+    // 特殊物品稀有度
     'extraordinary': { label: '非凡', color: '#ffd700', order: 0 },
+    'exotic': { label: '卓越', color: '#d32ce6', order: 3 },
+    'remarkable': { label: '奇异', color: '#8847ff', order: 4 },
+    'highgrade': { label: '高级', color: '#4b69ff', order: 5 },
+    'master': { label: '大师', color: '#eb4b4b', order: 2 },
+    // 默认/兜底
+    'base': { label: '基础', color: '#b0c3d9', order: 8 },
 };
 
 // 模拟饰品数据（Buff风格完整分类）
@@ -654,18 +662,23 @@ function renderMarket() {
         // 搜索条件
         const matchSearch = filterState.search === '' ||
             item.name.toLowerCase().includes(filterState.search) ||
-            item.nameEn.toLowerCase().includes(filterState.search);
+            (item.nameEn && item.nameEn.toLowerCase().includes(filterState.search));
 
         // 分类条件
         const matchCategory = filterState.category === 'all' || item.category === filterState.category;
 
-        // 具体武器条件
-        const matchWeapon = filterState.weapon === 'all' || item.weapon === filterState.weapon;
+        // 具体武器条件（规范化比较）
+        let matchWeapon = filterState.weapon === 'all';
+        if (!matchWeapon) {
+            const filterWeapon = filterState.weapon.toLowerCase().replace(/_/g, '-');
+            const itemWeapon = (item.weapon || '').toLowerCase().replace(/_/g, '-');
+            matchWeapon = itemWeapon === filterWeapon || itemWeapon.includes(filterWeapon) || filterWeapon.includes(itemWeapon);
+        }
 
         // 稀有度条件
         const matchRarity = filterState.rarity === 'all' || item.rarity === filterState.rarity;
 
-        // 品质条件
+        // 品质/外观条件
         const matchWear = filterState.wear === 'all' || item.wear === filterState.wear;
 
         // 类别条件（普通/纪念品/StatTrak/★/★ StatTrak™）
@@ -1856,19 +1869,29 @@ async function syncItemsFromAPI() {
             const baseVolume = item.prices.steam > 10000 ? 20 : item.prices.steam > 1000 ? 100 : item.prices.steam > 100 ? 500 : 2000;
             const volume = Math.floor(baseVolume * (0.5 + Math.random()));
 
+            // 确定磨损度：武器类有磨损，其他类（印花、武器箱等）为"无涂装"
+            const isWeapon = ['rifle', 'pistol', 'smg', 'heavy', 'knife', 'glove'].includes(item.category);
+            const wear = isWeapon ? '崭新出厂' : '无涂装';
+            const wearEn = isWeapon ? 'fn' : 'vanilla';
+
+            // 规范化武器 slug（确保格式一致）
+            let weaponSlug = item.weapon || 'other';
+            // 转换常见的格式差异
+            weaponSlug = weaponSlug.toLowerCase().replace(/_/g, '-');
+
             return {
                 id: index + 1,
                 name: item.name,
                 nameEn: item.nameEn,
-                wear: '崭新出厂',
-                wearEn: 'fn',
+                wear: wear,
+                wearEn: wearEn,
                 category: item.category,
-                weapon: item.weapon,
+                weapon: weaponSlug,
                 weaponName: item.weaponName,
-                rarity: item.rarity,
+                rarity: item.rarity || 'milspec',
                 collection: '未知收藏品',
-                isStatTrak: item.isStatTrak,
-                hasSouvenir: item.hasSouvenir,
+                isStatTrak: item.isStatTrak || false,
+                hasSouvenir: item.hasSouvenir || false,
                 slug: item.slug,
                 image: item.image || generateSteamImage(item.slug),
                 buffPrice: item.prices.buff,
@@ -2028,3 +2051,43 @@ async function manualSync() {
 
 // 启动时检查同步
 checkAndSync();
+
+// 调试函数：在控制台输入 debugItems() 查看数据分布
+window.debugItems = function() {
+    const stats = {
+        total: mockItems.length,
+        categories: {},
+        weapons: {},
+        rarities: {},
+        wears: {},
+        statTrak: 0,
+        souvenir: 0
+    };
+
+    mockItems.forEach(item => {
+        stats.categories[item.category] = (stats.categories[item.category] || 0) + 1;
+        stats.weapons[item.weapon] = (stats.weapons[item.weapon] || 0) + 1;
+        stats.rarities[item.rarity] = (stats.rarities[item.rarity] || 0) + 1;
+        stats.wears[item.wear] = (stats.wears[item.wear] || 0) + 1;
+        if (item.isStatTrak) stats.statTrak++;
+        if (item.hasSouvenir) stats.souvenir++;
+    });
+
+    console.log('=== 饰品数据分布 ===');
+    console.log('总数:', stats.total);
+    console.log('分类:', stats.categories);
+    console.log('武器:', stats.weapons);
+    console.log('稀有度:', stats.rarities);
+    console.log('磨损:', stats.wears);
+    console.log('StatTrak:', stats.statTrak);
+    console.log('纪念品:', stats.souvenir);
+    console.log('===================');
+
+    // 显示前5个物品的详细信息
+    console.log('示例数据（前5个）:');
+    mockItems.slice(0, 5).forEach((item, i) => {
+        console.log(`${i+1}. ${item.name} | 分类:${item.category} | 武器:${item.weapon} | 稀有度:${item.rarity} | 磨损:${item.wear}`);
+    });
+
+    return stats;
+};
