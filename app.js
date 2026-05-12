@@ -1214,12 +1214,12 @@ function doSyncSteam() {
     }, 1500);
 }
 
-// ==================== 真实价格API ====================
+// ==================== 真实价格API (cs2.sh) ====================
 async function fetchRealPrices() {
     if (!useRealPrices) return;
 
     try {
-        showToast('正在获取最新价格...');
+        showToast('正在获取 cs2.sh 价格...');
 
         const response = await fetch(`${API_BASE}/prices`);
         const data = await response.json();
@@ -1228,38 +1228,46 @@ async function fetchRealPrices() {
             let updatedCount = 0;
 
             // 遍历返回的价格数据
-            for (const [itemName, priceData] of Object.entries(data.prices)) {
+            for (const [marketHashName, priceData] of Object.entries(data.prices)) {
+                // 从 market_hash_name 提取饰品名（去掉磨损度）
+                const baseName = priceData.baseName || marketHashName.replace(/\s*\([^)]+\)$/, '');
+
                 // 查找匹配的饰品
                 const item = mockItems.find(i => {
-                    const itemNameLower = itemName.toLowerCase();
-                    const searchName = i.nameEn.toLowerCase();
-                    return itemNameLower.includes(searchName) || searchName.includes(itemNameLower.split('(')[0].trim());
+                    const itemNameEn = i.nameEn.toLowerCase();
+                    const searchName = baseName.toLowerCase();
+                    // 匹配：完全包含或部分匹配
+                    return searchName.includes(itemNameEn) ||
+                           itemNameEn.includes(searchName) ||
+                           itemNameEn.split('|')[1]?.trim() === searchName.split('|')[1]?.trim();
                 });
 
                 if (item && priceData) {
                     // 保存旧价格用于计算涨跌幅
                     const oldPrice = item.buffPrice;
 
-                    // 更新价格（Buff价格，单位转换：API返回的是美元或人民币）
-                    if (priceData.buff && priceData.buff > 0) {
-                        item.buffPrice = parseFloat(priceData.buff.toFixed(2));
+                    // 更新Buff价格（已转换为CNY）
+                    if (priceData.buff && priceData.buff.askCNY > 0) {
+                        item.buffPrice = priceData.buff.askCNY;
+                        item.volume = priceData.buff.volume || item.volume;
                         updatedCount++;
-                    } else if (priceData.buff_avg && priceData.buff_avg > 0) {
-                        item.buffPrice = parseFloat(priceData.buff_avg.toFixed(2));
-                        updatedCount++;
+                    }
+
+                    // 更新悠悠有品价格
+                    if (priceData.youpin && priceData.youpin.askCNY > 0) {
+                        item.youpinPrice = priceData.youpin.askCNY;
+                    } else {
+                        // 如果没有悠悠数据，估算（通常略高于Buff）
+                        item.youpinPrice = parseFloat((item.buffPrice * 1.02).toFixed(2));
                     }
 
                     // 更新Steam价格
-                    if (priceData.steam && priceData.steam > 0) {
-                        // Steam价格通常是美元，转换为人民币（汇率约7.2）
-                        item.steamPrice = parseFloat((priceData.steam * 7.2).toFixed(2));
+                    if (priceData.steam && priceData.steam.askCNY > 0) {
+                        item.steamPrice = priceData.steam.askCNY;
                     }
 
-                    // 估算悠悠有品价格（通常在Buff和Steam之间）
-                    item.youpinPrice = parseFloat((item.buffPrice * 1.02).toFixed(2));
-
-                    // 计算24小时涨跌幅
-                    if (oldPrice > 0) {
+                    // 计算涨跌幅（基于价格变化）
+                    if (oldPrice > 0 && item.buffPrice !== oldPrice) {
                         item.change24h = parseFloat(((item.buffPrice / oldPrice - 1) * 100).toFixed(2));
                     }
                 }
@@ -1268,10 +1276,10 @@ async function fetchRealPrices() {
             lastPriceUpdate = Date.now();
 
             if (updatedCount > 0) {
-                showToast(`价格已更新：${updatedCount} 件饰品`);
+                showToast(`✅ 价格已更新：${updatedCount} 件饰品`);
                 updateUI();
             } else {
-                showToast('暂无新价格数据');
+                showToast('暂无匹配的价格数据');
             }
         } else {
             throw new Error(data.error || '获取价格失败');
@@ -1279,7 +1287,7 @@ async function fetchRealPrices() {
 
     } catch (error) {
         console.error('获取价格失败:', error);
-        showToast('获取价格失败，使用模拟数据');
+        showToast('⚠️ 获取价格失败，使用模拟数据');
         useRealPrices = false;
     }
 }
