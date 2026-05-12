@@ -186,10 +186,96 @@ const mockItems = [
 // 筛选状态
 let filterState = {
     category: 'all',
+    weapon: 'all',      // 具体武器筛选
     rarity: 'all',
     wear: 'all',
+    stat: 'all',        // StatTrak/纪念品筛选
     sort: 'default',
     search: ''
+};
+
+// 武器类型配置（用于生成二级筛选）
+const WEAPON_BY_CATEGORY = {
+    rifle: [
+        { slug: 'ak-47', name: 'AK-47' },
+        { slug: 'm4a4', name: 'M4A4' },
+        { slug: 'm4a1-s', name: 'M4A1消音型' },
+        { slug: 'aug', name: 'AUG' },
+        { slug: 'sg-553', name: 'SG 553' },
+        { slug: 'famas', name: 'FAMAS' },
+        { slug: 'galil-ar', name: 'Galil AR' },
+    ],
+    sniper: [
+        { slug: 'awp', name: 'AWP' },
+        { slug: 'ssg-08', name: 'SSG 08' },
+        { slug: 'scar-20', name: 'SCAR-20' },
+        { slug: 'g3sg1', name: 'G3SG1' },
+    ],
+    smg: [
+        { slug: 'mp9', name: 'MP9' },
+        { slug: 'mac-10', name: 'MAC-10' },
+        { slug: 'mp7', name: 'MP7' },
+        { slug: 'ump-45', name: 'UMP-45' },
+        { slug: 'p90', name: 'P90' },
+        { slug: 'pp-bizon', name: 'PP-野牛' },
+        { slug: 'mp5-sd', name: 'MP5-SD' },
+    ],
+    pistol: [
+        { slug: 'glock-18', name: '格洛克18型' },
+        { slug: 'usp-s', name: 'USP消音型' },
+        { slug: 'p2000', name: 'P2000' },
+        { slug: 'p250', name: 'P250' },
+        { slug: 'five-seven', name: 'FN57' },
+        { slug: 'tec-9', name: 'Tec-9' },
+        { slug: 'cz75-auto', name: 'CZ75' },
+        { slug: 'dual-berettas', name: '双持贝瑞塔' },
+        { slug: 'desert-eagle', name: '沙漠之鹰' },
+        { slug: 'r8-revolver', name: 'R8左轮' },
+    ],
+    shotgun: [
+        { slug: 'mag-7', name: 'MAG-7' },
+        { slug: 'nova', name: 'Nova' },
+        { slug: 'sawed-off', name: '截短霰弹枪' },
+        { slug: 'xm1014', name: 'XM1014' },
+    ],
+    machinegun: [
+        { slug: 'm249', name: 'M249' },
+        { slug: 'negev', name: '内格夫' },
+    ],
+    knife: [
+        { slug: 'karambit', name: '爪子刀' },
+        { slug: 'm9-bayonet', name: 'M9刺刀' },
+        { slug: 'butterfly-knife', name: '蝴蝶刀' },
+        { slug: 'bayonet', name: '刺刀' },
+        { slug: 'flip-knife', name: '折叠刀' },
+        { slug: 'gut-knife', name: '穿肠刀' },
+        { slug: 'huntsman-knife', name: '猎杀者匕首' },
+        { slug: 'falchion-knife', name: '弯刀' },
+        { slug: 'shadow-daggers', name: '暗影双匕' },
+        { slug: 'bowie-knife', name: '鲍伊猎刀' },
+        { slug: 'ursus-knife', name: '熊刀' },
+        { slug: 'navaja-knife', name: '折刀' },
+        { slug: 'stiletto-knife', name: '短剑' },
+        { slug: 'talon-knife', name: '锯齿爪刀' },
+        { slug: 'classic-knife', name: '经典刀' },
+        { slug: 'paracord-knife', name: '系绳匕首' },
+        { slug: 'survival-knife', name: '求生匕首' },
+        { slug: 'nomad-knife', name: '流浪者匕首' },
+        { slug: 'skeleton-knife', name: '骷髅匕首' },
+        { slug: 'kukri-knife', name: '廓尔喀刀' },
+    ],
+    glove: [
+        { slug: 'sport-gloves', name: '运动手套' },
+        { slug: 'driver-gloves', name: '驾驶手套' },
+        { slug: 'hand-wraps', name: '裹手' },
+        { slug: 'moto-gloves', name: '摩托手套' },
+        { slug: 'specialist-gloves', name: '专业手套' },
+        { slug: 'hydra-gloves', name: '九头蛇手套' },
+        { slug: 'broken-fang-gloves', name: '狂牙手套' },
+    ],
+    agent: [
+        { slug: 'agents', name: '全部探员' },
+    ],
 };
 
 // CS2 历史重大事件（用于K线图标注）
@@ -559,13 +645,26 @@ function renderMarket() {
         // 分类条件
         const matchCategory = filterState.category === 'all' || item.category === filterState.category;
 
+        // 具体武器条件
+        const matchWeapon = filterState.weapon === 'all' || item.weapon === filterState.weapon;
+
         // 稀有度条件
         const matchRarity = filterState.rarity === 'all' || item.rarity === filterState.rarity;
 
         // 品质条件
         const matchWear = filterState.wear === 'all' || item.wear === filterState.wear;
 
-        return matchSearch && matchCategory && matchRarity && matchWear;
+        // StatTrak/纪念品条件
+        let matchStat = filterState.stat === 'all';
+        if (filterState.stat === 'normal') {
+            matchStat = !item.isStatTrak && !item.hasSouvenir;
+        } else if (filterState.stat === 'stattrak') {
+            matchStat = item.isStatTrak === true;
+        } else if (filterState.stat === 'souvenir') {
+            matchStat = item.hasSouvenir === true;
+        }
+
+        return matchSearch && matchCategory && matchWeapon && matchRarity && matchWear && matchStat;
     });
 
     // 应用排序
@@ -591,7 +690,7 @@ function renderMarket() {
     }
 
     // 显示筛选统计
-    const isFiltered = filterState.category !== 'all' || filterState.rarity !== 'all' || filterState.wear !== 'all' || filterState.search !== '';
+    const isFiltered = filterState.category !== 'all' || filterState.weapon !== 'all' || filterState.rarity !== 'all' || filterState.wear !== 'all' || filterState.stat !== 'all' || filterState.search !== '';
     statsContainer.innerHTML = `
         <span>共 <span class="count">${filteredItems.length}</span> 件饰品${isFiltered ? '（已筛选）' : ''}</span>
         ${isFiltered ? '<button class="clear-filter" onclick="clearFilters()">清除筛选</button>' : ''}
@@ -638,7 +737,7 @@ function renderMarket() {
 
 // 清除所有筛选
 function clearFilters() {
-    filterState = { category: 'all', rarity: 'all', wear: 'all', sort: 'default', search: '' };
+    filterState = { category: 'all', weapon: 'all', rarity: 'all', wear: 'all', stat: 'all', sort: 'default', search: '' };
 
     // 重置UI
     document.getElementById('searchInput').value = '';
@@ -646,15 +745,24 @@ function clearFilters() {
     document.querySelectorAll('#categoryFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.category === 'all');
     });
+    document.querySelectorAll('#weaponFilter .filter-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.dataset.weapon === 'all');
+    });
     document.querySelectorAll('#rarityFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.rarity === 'all');
     });
     document.querySelectorAll('#wearFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.wear === 'all');
     });
+    document.querySelectorAll('#statFilter .filter-tag').forEach(tag => {
+        tag.classList.toggle('active', tag.dataset.stat === 'all');
+    });
     document.querySelectorAll('#sortFilter .filter-tag').forEach(tag => {
         tag.classList.toggle('active', tag.dataset.sort === 'default');
     });
+
+    // 隐藏武器筛选行
+    document.getElementById('weaponFilterRow').style.display = 'none';
 
     renderMarket();
 }
@@ -1525,15 +1633,49 @@ document.querySelectorAll('.source-tab').forEach(tab => {
 // 搜索功能
 document.getElementById('searchInput').addEventListener('input', renderMarket);
 
-// 分类筛选
+// 分类筛选（带武器二级联动）
 document.querySelectorAll('#categoryFilter .filter-tag').forEach(tag => {
     tag.addEventListener('click', () => {
         document.querySelectorAll('#categoryFilter .filter-tag').forEach(t => t.classList.remove('active'));
         tag.classList.add('active');
         filterState.category = tag.dataset.category;
+        filterState.weapon = 'all'; // 重置武器筛选
+
+        // 更新武器二级筛选
+        updateWeaponFilter(filterState.category);
+
         renderMarket();
     });
 });
+
+// 更新武器二级筛选
+function updateWeaponFilter(category) {
+    const row = document.getElementById('weaponFilterRow');
+    const container = document.getElementById('weaponFilter');
+
+    if (category === 'all' || !WEAPON_BY_CATEGORY[category]) {
+        row.style.display = 'none';
+        return;
+    }
+
+    const weapons = WEAPON_BY_CATEGORY[category];
+    row.style.display = 'flex';
+
+    container.innerHTML = `
+        <button class="filter-tag active" data-weapon="all">全部</button>
+        ${weapons.map(w => `<button class="filter-tag" data-weapon="${w.slug}">${w.name}</button>`).join('')}
+    `;
+
+    // 绑定事件
+    container.querySelectorAll('.filter-tag').forEach(btn => {
+        btn.addEventListener('click', () => {
+            container.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            filterState.weapon = btn.dataset.weapon;
+            renderMarket();
+        });
+    });
+}
 
 // 稀有度筛选
 document.querySelectorAll('#rarityFilter .filter-tag').forEach(tag => {
@@ -1551,6 +1693,16 @@ document.querySelectorAll('#wearFilter .filter-tag').forEach(tag => {
         document.querySelectorAll('#wearFilter .filter-tag').forEach(t => t.classList.remove('active'));
         tag.classList.add('active');
         filterState.wear = tag.dataset.wear;
+        renderMarket();
+    });
+});
+
+// StatTrak/纪念品筛选
+document.querySelectorAll('#statFilter .filter-tag').forEach(tag => {
+    tag.addEventListener('click', () => {
+        document.querySelectorAll('#statFilter .filter-tag').forEach(t => t.classList.remove('active'));
+        tag.classList.add('active');
+        filterState.stat = tag.dataset.stat;
         renderMarket();
     });
 });
