@@ -853,6 +853,65 @@ function renderPortfolio() {
 }
 
 // ==================== 资讯功能 ====================
+const NEWS_STORAGE_KEY = 'cs2_news_data';
+const NEWS_TIMESTAMP_KEY = 'cs2_news_timestamp';
+
+// 从API获取真实新闻
+async function fetchNewsFromAPI() {
+    try {
+        const response = await fetch(`${API_BASE}/news?source=${currentNewsSource}&limit=20`);
+        if (!response.ok) throw new Error('新闻API请求失败');
+
+        const data = await response.json();
+        if (data.success && data.news) {
+            // 合并市场动态（本地数据）
+            const marketNews = mockNews.filter(n => n.source === 'market');
+            const allNews = [...data.news, ...marketNews];
+
+            // 保存到本地存储
+            localStorage.setItem(NEWS_STORAGE_KEY, JSON.stringify(allNews));
+            localStorage.setItem(NEWS_TIMESTAMP_KEY, Date.now().toString());
+
+            // 更新 mockNews
+            mockNews.length = 0;
+            mockNews.push(...allNews);
+
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error('获取新闻失败:', error);
+        return false;
+    }
+}
+
+// 加载本地缓存的新闻
+function loadCachedNews() {
+    const cachedNews = localStorage.getItem(NEWS_STORAGE_KEY);
+    if (cachedNews) {
+        try {
+            const news = JSON.parse(cachedNews);
+            if (news && news.length > 0) {
+                mockNews.length = 0;
+                mockNews.push(...news);
+                return true;
+            }
+        } catch (e) {
+            console.error('加载缓存新闻失败:', e);
+        }
+    }
+    return false;
+}
+
+// 检查是否需要刷新新闻（30分钟缓存）
+function shouldRefreshNews() {
+    const lastUpdate = localStorage.getItem(NEWS_TIMESTAMP_KEY);
+    if (!lastUpdate) return true;
+
+    const timeDiff = Date.now() - parseInt(lastUpdate);
+    return timeDiff > 30 * 60 * 1000; // 30分钟
+}
+
 function renderNews() {
     const container = document.getElementById('newsList');
 
@@ -886,7 +945,7 @@ function renderNews() {
                         ${news.hot ? '<span class="news-hot">🔥 热门</span>' : ''}
                     </div>
                     <h4 class="news-title">${news.title}</h4>
-                    <p class="news-summary">${news.summary}</p>
+                    ${news.summary ? `<p class="news-summary">${news.summary}</p>` : ''}
                 </div>
                 <div class="news-arrow">→</div>
             </div>
@@ -900,19 +959,53 @@ function openNewsUrl(url) {
     }
 }
 
-function refreshNews() {
-    showToast('正在刷新资讯...');
-    // 模拟刷新延迟
-    setTimeout(() => {
-        // 随机更新一些新闻的时间，模拟获取新数据
-        mockNews.forEach(news => {
-            if (Math.random() > 0.7) {
-                news.time = Date.now() - Math.random() * 3600000 * 24;
-            }
-        });
-        renderNews();
-        showToast('资讯已更新');
-    }, 800);
+async function refreshNews() {
+    const btn = document.querySelector('.btn-refresh');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ 刷新中...';
+    }
+
+    showToast('正在获取最新资讯...');
+
+    try {
+        const success = await fetchNewsFromAPI();
+        if (success) {
+            renderNews();
+            showToast('✓ 资讯已更新');
+        } else {
+            showToast('⚠️ 刷新失败，使用缓存数据');
+        }
+    } catch (error) {
+        console.error('刷新新闻出错:', error);
+        showToast('❌ 刷新失败');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '刷新';
+        }
+    }
+}
+
+// 启动时加载新闻
+function initNews() {
+    // 先加载缓存
+    loadCachedNews();
+    renderNews();
+
+    // 检查是否需要刷新
+    if (shouldRefreshNews()) {
+        setTimeout(() => {
+            fetchNewsFromAPI().then(() => renderNews());
+        }, 2000);
+    }
+}
+
+// 页面加载时初始化新闻
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNews);
+} else {
+    initNews();
 }
 
 // ==================== 社区功能 ====================
