@@ -360,6 +360,12 @@ body {
     border-color: var(--accent-blue);
 }
 
+.btn-sync-items:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background: var(--bg-secondary);
+}
+
 /* ==================== Buff风格筛选 ==================== */
 .filter-section {
     background: var(--bg-card);

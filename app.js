@@ -1658,10 +1658,11 @@ const SYNC_TIMESTAMP_KEY = 'cs2_sync_timestamp';
 
 // 从API同步饰品数据
 async function syncItemsFromAPI() {
-    showToast('正在同步饰品数据...');
+    showToast('正在同步饰品数据，请稍候...');
 
     try {
-        const response = await fetch(`${API_BASE}/sync?category=all&minPrice=20&limit=100`);
+        // minPrice=1 获取所有价格饰品，maxPages=10 每个分类获取10页（最多1000个/分类）
+        const response = await fetch(`${API_BASE}/sync?minPrice=1&maxPages=10`);
         if (!response.ok) throw new Error('API请求失败');
 
         const data = await response.json();
@@ -1671,9 +1672,12 @@ async function syncItemsFromAPI() {
 
         // 转换为mockItems格式
         const newItems = data.items.map((item, index) => {
-            // 生成随机涨跌幅
-            const change24h = Math.round((Math.random() * 10 - 3) * 10) / 10;
-            const volume = Math.floor(Math.random() * 500 + 50);
+            // 根据价格生成合理的涨跌幅（高价饰品波动小，低价饰品波动大）
+            const priceLevel = item.prices.steam > 5000 ? 0.5 : item.prices.steam > 1000 ? 1 : 2;
+            const change24h = Math.round((Math.random() * 6 - 2) * priceLevel * 10) / 10;
+            // 交易量与价格负相关
+            const baseVolume = item.prices.steam > 10000 ? 20 : item.prices.steam > 1000 ? 100 : item.prices.steam > 100 ? 500 : 2000;
+            const volume = Math.floor(baseVolume * (0.5 + Math.random()));
 
             return {
                 id: index + 1,
@@ -1683,9 +1687,12 @@ async function syncItemsFromAPI() {
                 wearEn: 'fn',
                 category: item.category,
                 weapon: item.weapon,
+                weaponName: item.weaponName,
                 rarity: item.rarity,
                 collection: '未知收藏品',
                 isStatTrak: item.isStatTrak,
+                hasSouvenir: item.hasSouvenir,
+                slug: item.slug,
                 image: item.image || generateSteamImage(item.slug),
                 buffPrice: item.prices.buff,
                 youpinPrice: item.prices.youpin,
@@ -1705,18 +1712,24 @@ async function syncItemsFromAPI() {
 
         // 刷新UI
         updateUI();
+
+        // 显示详细统计
+        const statsMsg = Object.entries(data.categoryStats || {})
+            .map(([cat, count]) => `${cat}:${count}`)
+            .join(' ');
         showToast(`✓ 同步成功！共 ${newItems.length} 件饰品`);
 
         console.log('饰品同步完成:', {
             count: newItems.length,
-            stats: data.stats,
+            categoryStats: data.categoryStats,
+            rarityStats: data.rarityStats,
             timestamp: new Date().toISOString()
         });
 
         return true;
     } catch (error) {
         console.error('同步失败:', error);
-        showToast('同步失败，使用本地数据');
+        showToast('❌ 同步失败，使用本地数据');
         return false;
     }
 }
@@ -1759,8 +1772,21 @@ function checkAndSync() {
 }
 
 // 手动同步按钮
-function manualSync() {
-    syncItemsFromAPI();
+async function manualSync() {
+    const btn = document.querySelector('.btn-sync-items');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ 同步中...';
+    }
+
+    try {
+        await syncItemsFromAPI();
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🔄 同步';
+        }
+    }
 }
 
 // 启动时检查同步
