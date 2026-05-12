@@ -56,6 +56,22 @@ export default async function handler(req, res) {
         return RARITY_MAP[key] || 'milspec';
     }
 
+    // 根据价格和分类估算稀有度（因为 Take.Skin API 返回的 rarity 都是 Classified）
+    function estimateRarity(price, category, apiCategory) {
+        // 刀和手套都是非凡
+        if (category === 'knife' || category === 'glove') {
+            return 'extraordinary';
+        }
+
+        // 根据价格估算（USD价格）
+        if (price >= 100) return 'covert';        // 隐秘 - $100+
+        if (price >= 30) return 'classified';     // 保密 - $30-100
+        if (price >= 10) return 'restricted';     // 受限 - $10-30
+        if (price >= 3) return 'milspec';         // 军规级 - $3-10
+        if (price >= 1) return 'industrial';      // 工业级 - $1-3
+        return 'consumer';                         // 消费级 - <$1
+    }
+
     // 武器分类映射 - Buff风格：狙击枪归入步枪，霰弹枪和机枪归入重型武器
     const WEAPON_CATEGORY_MAP = {
         // 狙击枪 → 步枪（Buff把狙击枪和步枪放一起）
@@ -207,7 +223,7 @@ export default async function handler(req, res) {
                     category: itemCategory,
                     weapon: weaponSlug,
                     weaponName: weaponName || apiCategory,
-                    rarity: mapRarity(skin.rarity),
+                    rarity: estimateRarity(steamPrice, itemCategory, apiCategory),
                     rarityOriginal: skin.rarity,
                     isStatTrak: skin.hasStatTrak || false,
                     hasSouvenir: skin.hasSouvenir || false,
