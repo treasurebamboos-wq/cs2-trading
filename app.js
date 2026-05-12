@@ -1851,8 +1851,8 @@ async function syncItemsFromAPI() {
     showToast('正在同步饰品数据，请稍候...');
 
     try {
-        // minPrice=1 获取所有价格饰品，maxPages=10 每个分类获取10页（最多1000个/分类）
-        const response = await fetch(`${API_BASE}/sync?minPrice=1&maxPages=10`);
+        // minPrice=0 获取所有饰品，maxPages=30 每个分类获取30页（最多3000个/分类）
+        const response = await fetch(`${API_BASE}/sync?minPrice=0&maxPages=30`);
         if (!response.ok) throw new Error('API请求失败');
 
         const data = await response.json();

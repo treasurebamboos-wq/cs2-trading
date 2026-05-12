@@ -12,7 +12,7 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    const { minPrice = 1, maxPages = 10 } = req.query;
+    const { minPrice = 0, maxPages = 30 } = req.query;  // 默认获取更多
     const USD_TO_CNY = 7.2;
     const LIMIT_PER_PAGE = 100;
 
@@ -64,33 +64,57 @@ export default async function handler(req, res) {
         'TOOLS': 'other'         // 工具
     };
 
-    // 获取单个分类的所有页数据
+    // 获取单个分类的所有页数据（带重试）
     async function fetchCategory(category, maxPg) {
         const items = [];
+        let consecutiveErrors = 0;
+
         for (let page = 0; page < maxPg; page++) {
-            try {
-                const url = `https://take.skin/api/public/v1/skins?limit=${LIMIT_PER_PAGE}&page=${page}&category=${category}`;
-                const response = await fetch(url, {
-                    headers: {
-                        'User-Agent': 'CS2-Trading-Simulator/1.0',
-                        'Accept': 'application/json'
+            let retries = 2;
+            let success = false;
+
+            while (retries > 0 && !success) {
+                try {
+                    const url = `https://take.skin/api/public/v1/skins?limit=${LIMIT_PER_PAGE}&page=${page}&category=${category}`;
+                    const response = await fetch(url, {
+                        headers: {
+                            'User-Agent': 'CS2-Trading-Simulator/1.0',
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        retries--;
+                        if (retries === 0) break;
+                        await new Promise(r => setTimeout(r, 500));
+                        continue;
                     }
-                });
 
-                if (!response.ok) break;
+                    const data = await response.json();
+                    if (!data.data || data.data.length === 0) {
+                        success = true;
+                        break;
+                    }
 
-                const data = await response.json();
-                if (!data.data || data.data.length === 0) break;
+                    items.push(...data.data.map(skin => ({ ...skin, apiCategory: category })));
+                    consecutiveErrors = 0;
+                    success = true;
 
-                items.push(...data.data.map(skin => ({ ...skin, apiCategory: category })));
+                    // 如果返回数量少于limit，说明已经是最后一页
+                    if (data.data.length < LIMIT_PER_PAGE) break;
 
-                // 如果返回数量少于limit，说明已经是最后一页
-                if (data.data.length < LIMIT_PER_PAGE) break;
-
-            } catch (err) {
-                console.error(`获取 ${category} 第${page}页失败:`, err.message);
-                break;
+                } catch (err) {
+                    retries--;
+                    consecutiveErrors++;
+                    if (retries === 0 || consecutiveErrors >= 3) {
+                        console.error(`获取 ${category} 第${page}页失败:`, err.message);
+                        break;
+                    }
+                    await new Promise(r => setTimeout(r, 500));
+                }
             }
+
+            if (!success && consecutiveErrors >= 3) break;
         }
         return items;
     }
