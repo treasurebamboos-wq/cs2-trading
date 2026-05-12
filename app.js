@@ -1939,6 +1939,46 @@ console.log('CS2 饰品模拟交易 - K线图版');
 const ITEMS_STORAGE_KEY = 'cs2_synced_items';
 const SYNC_TIMESTAMP_KEY = 'cs2_sync_timestamp';
 
+// 修正稀有度数据（使用 SteamWebAPI）
+async function fixRarityData(items) {
+    try {
+        const response = await fetch(`${API_BASE}/rarity-fix`);
+        if (!response.ok) throw new Error('稀有度API请求失败');
+
+        const data = await response.json();
+        if (!data.success || !data.rarityMap) {
+            throw new Error('稀有度数据格式错误');
+        }
+
+        // 应用稀有度修正
+        let fixedCount = 0;
+        items.forEach(item => {
+            // 尝试通过物品名称匹配稀有度
+            const rarityInfo = data.rarityMap[item.name] || data.rarityMap[item.nameEn];
+
+            if (rarityInfo && rarityInfo.rarity) {
+                // 更新稀有度
+                if (rarityInfo.rarity !== item.rarity) {
+                    item.rarity = rarityInfo.rarity;
+                    fixedCount++;
+                }
+
+                // 可选：更新其他信息
+                if (rarityInfo.isStatTrak !== undefined) {
+                    item.isStatTrak = rarityInfo.isStatTrak;
+                }
+            }
+        });
+
+        console.log(`✓ 稀有度修正完成：${fixedCount}/${items.length} 件`);
+        return true;
+
+    } catch (error) {
+        console.error('稀有度修正失败:', error);
+        return false;
+    }
+}
+
 // 从API同步饰品数据
 async function syncItemsFromAPI() {
     showToast('正在同步饰品数据，请稍候...');
@@ -2002,6 +2042,16 @@ async function syncItemsFromAPI() {
         // 更新mockItems
         mockItems.length = 0;
         mockItems.push(...newItems);
+
+        // 尝试修正稀有度（后台异步执行，不阻塞UI）
+        fixRarityData(newItems).then(() => {
+            console.log('稀有度修正完成');
+            // 重新保存和刷新UI
+            localStorage.setItem(ITEMS_STORAGE_KEY, JSON.stringify(mockItems));
+            updateUI();
+        }).catch(err => {
+            console.warn('稀有度修正失败:', err.message);
+        });
 
         // 刷新UI
         updateUI();
