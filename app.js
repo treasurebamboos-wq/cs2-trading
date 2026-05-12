@@ -1,6 +1,11 @@
 // ==================== 数据存储 ====================
 const STORAGE_KEY = 'cs2_trading_data';
 const POSTS_KEY = 'cs2_community_posts';
+const API_BASE = '/api'; // Vercel Serverless API
+
+// 是否使用真实价格
+let useRealPrices = true;
+let lastPriceUpdate = null;
 
 // 默认账户数据
 const defaultAccount = {
@@ -1209,6 +1214,86 @@ function doSyncSteam() {
     }, 1500);
 }
 
+// ==================== 真实价格API ====================
+async function fetchRealPrices() {
+    if (!useRealPrices) return;
+
+    try {
+        showToast('正在获取最新价格...');
+
+        const response = await fetch(`${API_BASE}/prices`);
+        const data = await response.json();
+
+        if (data.success && data.prices) {
+            let updatedCount = 0;
+
+            // 遍历返回的价格数据
+            for (const [itemName, priceData] of Object.entries(data.prices)) {
+                // 查找匹配的饰品
+                const item = mockItems.find(i => {
+                    const itemNameLower = itemName.toLowerCase();
+                    const searchName = i.nameEn.toLowerCase();
+                    return itemNameLower.includes(searchName) || searchName.includes(itemNameLower.split('(')[0].trim());
+                });
+
+                if (item && priceData) {
+                    // 保存旧价格用于计算涨跌幅
+                    const oldPrice = item.buffPrice;
+
+                    // 更新价格（Buff价格，单位转换：API返回的是美元或人民币）
+                    if (priceData.buff && priceData.buff > 0) {
+                        item.buffPrice = parseFloat(priceData.buff.toFixed(2));
+                        updatedCount++;
+                    } else if (priceData.buff_avg && priceData.buff_avg > 0) {
+                        item.buffPrice = parseFloat(priceData.buff_avg.toFixed(2));
+                        updatedCount++;
+                    }
+
+                    // 更新Steam价格
+                    if (priceData.steam && priceData.steam > 0) {
+                        // Steam价格通常是美元，转换为人民币（汇率约7.2）
+                        item.steamPrice = parseFloat((priceData.steam * 7.2).toFixed(2));
+                    }
+
+                    // 估算悠悠有品价格（通常在Buff和Steam之间）
+                    item.youpinPrice = parseFloat((item.buffPrice * 1.02).toFixed(2));
+
+                    // 计算24小时涨跌幅
+                    if (oldPrice > 0) {
+                        item.change24h = parseFloat(((item.buffPrice / oldPrice - 1) * 100).toFixed(2));
+                    }
+                }
+            }
+
+            lastPriceUpdate = Date.now();
+
+            if (updatedCount > 0) {
+                showToast(`价格已更新：${updatedCount} 件饰品`);
+                updateUI();
+            } else {
+                showToast('暂无新价格数据');
+            }
+        } else {
+            throw new Error(data.error || '获取价格失败');
+        }
+
+    } catch (error) {
+        console.error('获取价格失败:', error);
+        showToast('获取价格失败，使用模拟数据');
+        useRealPrices = false;
+    }
+}
+
+// 切换真实/模拟价格
+function togglePriceMode() {
+    useRealPrices = !useRealPrices;
+    if (useRealPrices) {
+        fetchRealPrices();
+    } else {
+        showToast('已切换为模拟价格');
+    }
+}
+
 // ==================== 标签页切换 ====================
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', () => {
@@ -1371,17 +1456,27 @@ function showToast(message) {
 // ==================== 初始化 ====================
 updateUI();
 
-// 模拟价格波动
+// 启动时获取真实价格
+setTimeout(() => {
+    fetchRealPrices();
+}, 1000);
+
+// 定期更新价格（每5分钟）
 setInterval(() => {
-    mockItems.forEach(item => {
-        const change = (Math.random() - 0.5) * 0.04;
-        item.buffPrice = item.buffPrice * (1 + change);
-        item.youpinPrice = item.youpinPrice * (1 + change * 0.9);
-        item.steamPrice = item.steamPrice * (1 + change * 0.8);
-        item.change24h = parseFloat((item.change24h + change * 100).toFixed(2));
-    });
-    updateUI();
-}, 30000);
+    if (useRealPrices) {
+        fetchRealPrices();
+    } else {
+        // 如果不使用真实价格，则模拟波动
+        mockItems.forEach(item => {
+            const change = (Math.random() - 0.5) * 0.04;
+            item.buffPrice = item.buffPrice * (1 + change);
+            item.youpinPrice = item.youpinPrice * (1 + change * 0.9);
+            item.steamPrice = item.steamPrice * (1 + change * 0.8);
+            item.change24h = parseFloat((item.change24h + change * 100).toFixed(2));
+        });
+        updateUI();
+    }
+}, 300000); // 5分钟
 
 // 图表大小自适应
 window.addEventListener('resize', () => {
