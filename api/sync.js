@@ -16,25 +16,45 @@ export default async function handler(req, res) {
     const USD_TO_CNY = 7.2;
     const LIMIT_PER_PAGE = 100;
 
-    // 稀有度映射 - 完整对应Buff分类
+    // 稀有度映射 - 完整对应Buff分类（全部小写键）
     const RARITY_MAP = {
         // 武器稀有度
-        'Contraband': 'contraband',     // 违禁
-        'Covert': 'covert',             // 隐秘
-        'Classified': 'classified',     // 保密
-        'Restricted': 'restricted',     // 受限
-        'Mil-Spec Grade': 'milspec',    // 军规级
-        'Mil-Spec': 'milspec',
-        'Industrial Grade': 'industrial', // 工业级
-        'Consumer Grade': 'consumer',   // 消费级
-        'Base Grade': 'consumer',
+        'contraband': 'contraband',     // 违禁
+        'covert': 'covert',             // 隐秘
+        'classified': 'classified',     // 保密
+        'restricted': 'restricted',     // 受限
+        'mil-spec grade': 'milspec',    // 军规级
+        'mil-spec': 'milspec',
+        'milspec': 'milspec',
+        'industrial grade': 'industrial', // 工业级
+        'industrial': 'industrial',
+        'consumer grade': 'consumer',   // 消费级
+        'consumer': 'consumer',
+        'base grade': 'consumer',
         // 特殊物品稀有度
-        'Extraordinary': 'extraordinary', // 非凡（刀/手套）
-        'Exotic': 'exotic',               // 卓越
-        'Remarkable': 'remarkable',       // 奇异
-        'High Grade': 'highgrade',        // 高级
-        'Master': 'master'                // 大师
+        'extraordinary': 'extraordinary', // 非凡（刀/手套）
+        'exotic': 'exotic',               // 卓越
+        'remarkable': 'remarkable',       // 奇异
+        'high grade': 'highgrade',        // 高级
+        'highgrade': 'highgrade',
+        'master': 'master',
+        // 其他可能的值
+        'rare': 'restricted',
+        'common': 'consumer',
+        'uncommon': 'industrial',
+        'legendary': 'covert',
+        'mythical': 'classified',
+        'immortal': 'contraband',
+        'ancient': 'covert',
+        'arcana': 'contraband'
     };
+
+    // 获取映射后的稀有度（不区分大小写）
+    function mapRarity(rarity) {
+        if (!rarity) return 'milspec';
+        const key = rarity.toLowerCase().trim();
+        return RARITY_MAP[key] || 'milspec';
+    }
 
     // 武器分类映射 - Buff风格：狙击枪归入步枪，霰弹枪和机枪归入重型武器
     const WEAPON_CATEGORY_MAP = {
@@ -187,7 +207,7 @@ export default async function handler(req, res) {
                     category: itemCategory,
                     weapon: weaponSlug,
                     weaponName: weaponName || apiCategory,
-                    rarity: RARITY_MAP[skin.rarity] || 'milspec',
+                    rarity: mapRarity(skin.rarity),
                     rarityOriginal: skin.rarity,
                     isStatTrak: skin.hasStatTrak || false,
                     hasSouvenir: skin.hasSouvenir || false,
