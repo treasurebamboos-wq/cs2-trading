@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CS2 饰品模拟交易</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- 轻量级金融图表库 -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div class="app">
+        <!-- 侧边栏 -->
+        <aside class="sidebar">
+            <!-- 账户卡片 -->
+            <div class="account-card">
+                <div class="account-header">
+                    <div>
+                        <div class="account-title">模拟资金</div>
+                        <div class="balance-amount" id="balance">¥100,000.00</div>
+                    </div>
+                    <button class="btn-reset" onclick="resetAccount()">重置</button>
+                </div>
+                <div class="portfolio-stats">
+                    <div class="stat-item">
+                        <div class="stat-label">持仓市值</div>
+                        <div class="stat-value" id="portfolioValue">¥0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">总盈亏</div>
+                        <div class="stat-value profit" id="totalProfit">+¥0.00</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">持仓数量</div>
+                        <div class="stat-value" id="holdingCount">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">交易次数</div>
+                        <div class="stat-value" id="tradeCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 真实度卡片 -->
+            <div class="trust-card">
+                <div class="trust-info">
+                    <div class="trust-icon">🎯</div>
+                    <div>
+                        <div class="trust-label">真实度</div>
+                        <div class="trust-value" id="trustScore">未同步</div>
+                    </div>
+                </div>
+                <button class="btn-sync" onclick="syncSteamInventory()">同步库存</button>
+            </div>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="main-content">
+            <!-- 标签页导航 -->
+            <nav class="tabs">
+                <button class="tab active" data-tab="market">市场</button>
+                <button class="tab" data-tab="portfolio">持仓</button>
+                <button class="tab" data-tab="community">社区</button>
+                <button class="tab" data-tab="leaderboard">排行榜</button>
+            </nav>
+
+            <!-- 市场行情页 -->
+            <section class="tab-content active" id="market">
+                <div class="search-bar">
+                    <input type="text" placeholder="搜索饰品名称..." id="searchInput">
+                </div>
+                <!-- Buff风格分类筛选 -->
+                <div class="filter-section">
+                    <div class="filter-row">
+                        <div class="filter-label">类型</div>
+                        <div class="filter-tags" id="categoryFilter">
+                            <button class="filter-tag active" data-category="all">全部</button>
+                            <button class="filter-tag" data-category="rifle">步枪</button>
+                            <button class="filter-tag" data-category="sniper">狙击枪</button>
+                            <button class="filter-tag" data-category="pistol">手枪</button>
+                            <button class="filter-tag" data-category="smg">冲锋枪</button>
+                            <button class="filter-tag" data-category="knife">刀</button>
+                            <button class="filter-tag" data-category="glove">手套</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-label">品质</div>
+                        <div class="filter-tags" id="wearFilter">
+                            <button class="filter-tag active" data-wear="all">全部</button>
+                            <button class="filter-tag" data-wear="崭新出厂">崭新出厂</button>
+                            <button class="filter-tag" data-wear="略有磨损">略有磨损</button>
+                            <button class="filter-tag" data-wear="久经沙场">久经沙场</button>
+                            <button class="filter-tag" data-wear="破损不堪">破损不堪</button>
+                            <button class="filter-tag" data-wear="战痕累累">战痕累累</button>
+                        </div>
+                    </div>
+                    <div class="filter-row">
+                        <div class="filter-label">排序</div>
+                        <div class="filter-tags" id="sortFilter">
+                            <button class="filter-tag active" data-sort="default">默认</button>
+                            <button class="filter-tag" data-sort="price-asc">价格↑</button>
+                            <button class="filter-tag" data-sort="price-desc">价格↓</button>
+                            <button class="filter-tag" data-sort="change-desc">涨幅↓</button>
+                            <button class="filter-tag" data-sort="change-asc">跌幅↓</button>
+                            <button class="filter-tag" data-sort="volume-desc">热度↓</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="market-stats" id="marketStats">
+                    <!-- 筛选结果统计 -->
+                </div>
+                <div class="market-list" id="marketList">
+                    <!-- 饰品列表将由JS动态生成 -->
+                </div>
+            </section>
+
+            <!-- 我的持仓页 -->
+            <section class="tab-content" id="portfolio">
+                <div class="portfolio-subtabs">
+                    <button class="sub-tab active" data-subtab="holdings">当前持仓</button>
+                    <button class="sub-tab" data-subtab="history">交易记录</button>
+                </div>
+                <div class="subtab-content active" id="holdings">
+                    <div class="portfolio-list" id="portfolioList">
+                        <div class="empty-state">暂无持仓，去市场买点饰品吧</div>
+                    </div>
+                </div>
+                <div class="subtab-content" id="history">
+                    <div class="history-list" id="historyList">
+                        <div class="empty-state">暂无交易记录</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 社区讨论页 -->
+            <section class="tab-content" id="community">
+                <!-- 社区子标签：讨论/资讯 -->
+                <div class="community-subtabs">
+                    <button class="comm-tab active" data-commtab="discussion">讨论</button>
+                    <button class="comm-tab" data-commtab="news">资讯</button>
+                </div>
+
+                <!-- 讨论内容 -->
+                <div class="commtab-content active" id="discussion">
+                    <div class="community-header">
+                        <button class="btn-post" onclick="openPostModal()">发布动态</button>
+                    </div>
+                    <div class="community-list" id="communityList">
+                        <!-- 社区帖子将由JS动态生成 -->
+                    </div>
+                </div>
+
+                <!-- 资讯内容 -->
+                <div class="commtab-content" id="news">
+                    <div class="news-header">
+                        <div class="news-source-tabs">
+                            <button class="source-tab active" data-source="all">全部</button>
+                            <button class="source-tab" data-source="hltv">HLTV</button>
+                            <button class="source-tab" data-source="cs2">CS2官方</button>
+                            <button class="source-tab" data-source="market">市场动态</button>
+                        </div>
+                        <button class="btn-refresh" onclick="refreshNews()">刷新</button>
+                    </div>
+                    <div class="news-list" id="newsList">
+                        <!-- 新闻列表将由JS动态生成 -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- 排行榜页 -->
+            <section class="tab-content" id="leaderboard">
+                <div class="leaderboard-tabs">
+                    <button class="lb-tab active" data-lb="profit">收益榜</button>
+                    <button class="lb-tab" data-lb="value">资产榜</button>
+                </div>
+                <div class="leaderboard-list" id="leaderboardList">
+                    <!-- 排行榜将由JS动态生成 -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 交易弹窗 -->
+    <div class="modal" id="tradeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">交易</h3>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="item-preview">
+                    <img id="modalItemImg" src="" alt="">
+                    <div class="item-info">
+                        <h4 id="modalItemName"></h4>
+                        <div class="price-comparison">
+                            <div class="price-row buff">
+                                <span class="platform">Buff</span>
+                                <span class="price" id="modalBuffPrice">--</span>
+                            </div>
+                            <div class="price-row youpin">
+                                <span class="platform">悠悠有品</span>
+                                <span class="price" id="modalYoupinPrice">--</span>
+                            </div>
+                            <div class="price-row steam">
+                                <span class="platform">Steam</span>
+                                <span class="price" id="modalSteamPrice">--</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="trade-form">
+                    <div class="trade-type">
+                        <button class="trade-btn buy active" onclick="setTradeType('buy')">买入</button>
+                        <button class="trade-btn sell" onclick="setTradeType('sell')">卖出</button>
+                    </div>
+                    <div class="quantity-input">
+                        <label>数量</label>
+                        <div class="quantity-control">
+                            <button onclick="adjustQuantity(-1)">−</button>
+                            <input type="number" id="tradeQuantity" value="1" min="1">
+                            <button onclick="adjustQuantity(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="trade-summary">
+                        <span>预计金额</span>
+                        <span class="total-amount" id="tradeTotal">¥0.00</span>
+                    </div>
+                    <button class="btn-confirm" onclick="confirmTrade()">确认交易</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Steam库存同步弹窗 -->
+    <div class="modal" id="steamModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>同步 Steam 库存</h3>
+                <button class="modal-close" onclick="closeSteamModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+                    输入你的 Steam 个人资料链接或 Steam ID，系统会读取你的公开库存，并与模拟持仓进行对比。
+                </p>
+                <div class="quantity-input">
+                    <label>Steam 个人资料链接</label>
+                    <input type="text" id="steamIdInput" placeholder="如: steamcommunity.com/id/xxx" style="width: 100%; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); font-size: 14px;">
+                </div>
+                <button class="btn-confirm" onclick="doSyncSteam()" style="margin-top: 16px;">开始同步</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发帖弹窗 -->
+    <div class="modal" id="postModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>发布动态</h3>
+                <button class="modal-close" onclick="closePostModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="post-form">
+                    <textarea id="postContent" placeholder="分享你的交易心得、市场分析或饰品推荐..." rows="4"></textarea>
+                    <div class="post-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sharePortfolio">
+                            <span>分享我的当前持仓</span>
+                        </label>
+                    </div>
+                    <button class="btn-confirm" onclick="submitPost()">发布</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 价格走势图弹窗 -->
+    <div class="modal" id="chartModal">
+        <div class="modal-content chart-modal-content">
+            <div class="modal-header">
+                <h3 id="chartModalTitle">价格走势</h3>
+                <button class="modal-close" onclick="closeChartModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="chart-item-info" id="chartItemInfo">
+                    <!-- 饰品信息 -->
+                </div>
+                <div class="chart-period-tabs">
+                    <button class="period-tab active" data-period="7">7天</button>
+                    <button class="period-tab" data-period="30">30天</button>
+                    <button class="period-tab" data-period="90">90天</button>
+                    <button class="period-tab" data-period="180">180天</button>
+                </div>
+                <div class="chart-container" id="priceChart"></div>
+                <div class="chart-events" id="chartEvents">
+                    <!-- 事件列表 -->
+                </div>
+                <div class="chart-actions">
+                    <button class="btn-confirm" onclick="openTradeFromChart()">交易该饰品</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看用户持仓弹窗 -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="userModalTitle">用户持仓</h3>
+                <button class="modal-close" onclick="closeUserModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="user-profile" id="userProfile">
+                    <!-- 用户信息将由JS动态生成 -->
+                </div>
+                <div class="user-holdings" id="userHoldings">
+                    <!-- 用户持仓将由JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
