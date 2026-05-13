@@ -190,27 +190,60 @@
     color: #9ca3af;
 }
 
-.confidence-badge {
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-size: 11px;
-    font-weight: 600;
-    margin-left: 4px;
+/* 影响等级徽章 (炉石传说风格) */
+.impact-level-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    margin-left: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    animation: levelGlow 2s ease-in-out infinite;
 }
 
-.confidence-badge.high {
-    background: rgba(16, 185, 129, 0.2);
-    color: #10b981;
+/* 传说级 - 橙色 */
+.impact-level-badge.legendary {
+    background: linear-gradient(135deg, #ff8800 0%, #ff6600 100%);
+    box-shadow: 0 0 20px rgba(255, 136, 0, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.confidence-badge.medium {
-    background: rgba(245, 158, 11, 0.2);
-    color: #f59e0b;
+/* 史诗级 - 紫色 */
+.impact-level-badge.epic {
+    background: linear-gradient(135deg, #a335ee 0%, #9022d4 100%);
+    box-shadow: 0 0 15px rgba(163, 53, 238, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.confidence-badge.low {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
+/* 稀有级 - 蓝色 */
+.impact-level-badge.rare {
+    background: linear-gradient(135deg, #0070dd 0%, #0060c0 100%);
+    box-shadow: 0 0 12px rgba(0, 112, 221, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* 普通级 - 灰色 */
+.impact-level-badge.common {
+    background: linear-gradient(135deg, #9d9d9d 0%, #7d7d7d 100%);
+    box-shadow: 0 0 8px rgba(157, 157, 157, 0.3), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* 子项目的等级图标 */
+.impact-level-icon {
+    font-size: 14px;
+    margin-left: 6px;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+}
+
+/* 光晕动画 */
+@keyframes levelGlow {
+    0%, 100% {
+        filter: brightness(1);
+    }
+    50% {
+        filter: brightness(1.2);
+    }
 }
 
 .impact-reason {
@@ -244,6 +277,9 @@
 .impact-item-name {
     font-size: 14px;
     color: #e2e8f0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .impact-item-value {

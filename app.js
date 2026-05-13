@@ -2311,33 +2311,47 @@ function renderPriceImpactModal(event) {
         if (e.target === modal) closeImpactModal();
     };
 
-    const impactsHTML = event.impacts.map(impact => `
+    const impactsHTML = event.impacts.map(impact => {
+        const impactLevel = getImpactLevel(impact.overall.percentage);
+
+        return `
         <div class="impact-category">
             <div class="impact-category-header">
                 <span class="impact-icon">${impact.icon}</span>
                 <h3>${impact.categoryLabel}</h3>
                 <span class="impact-overall ${getTrendClass(impact.overall.trend)}">
-                    ${getTrendIcon(impact.overall.trend)} 
+                    ${getTrendIcon(impact.overall.trend)}
                     ${formatPercentage(impact.overall.percentage)}
-                    <span class="confidence-badge ${impact.overall.confidence}">${getConfidenceLabel(impact.overall.confidence)}</span>
+                    <span class="impact-level-badge ${impactLevel.level}" style="color: ${impactLevel.color}">
+                        ${impactLevel.icon} ${impactLevel.label}
+                    </span>
                 </span>
             </div>
             <p class="impact-reason">${impact.overall.reason}</p>
-            
+
             ${impact.subcategories && impact.subcategories.length > 0 ? `
                 <div class="impact-subcategories">
-                    ${impact.subcategories.map(sub => `
+                    ${impact.subcategories.map(sub => {
+                        const subLevel = getImpactLevel(sub.percentage);
+                        return `
                         <div class="impact-item">
-                            <div class="impact-item-name">${sub.label}</div>
+                            <div class="impact-item-name">
+                                ${sub.label}
+                                <span class="impact-level-icon" style="color: ${subLevel.color}" title="${subLevel.label}">
+                                    ${subLevel.icon}
+                                </span>
+                            </div>
                             <div class="impact-item-value ${getTrendClass(sub.trend)}">
                                 ${getTrendIcon(sub.trend)} ${formatPercentage(sub.percentage)}
                             </div>
                         </div>
-                    `).join('')}
+                        `;
+                    }).join('')}
                 </div>
             ` : ''}
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     modal.innerHTML = `
         <div class="modal-content impact-modal">
@@ -2393,7 +2407,43 @@ function formatPercentage(percentage) {
     return `${sign}${percentage.toFixed(1)}%`;
 }
 
+// 根据价格波动幅度计算影响等级(炉石传说风格)
+function getImpactLevel(percentage) {
+    const absPercent = Math.abs(percentage);
+
+    if (absPercent >= 20) {
+        return {
+            level: 'legendary',
+            label: '传说级影响',
+            icon: '💎',
+            color: '#ff8800'  // 橙色
+        };
+    } else if (absPercent >= 10) {
+        return {
+            level: 'epic',
+            label: '史诗级影响',
+            icon: '⚜️',
+            color: '#a335ee'  // 紫色
+        };
+    } else if (absPercent >= 5) {
+        return {
+            level: 'rare',
+            label: '稀有级影响',
+            icon: '💠',
+            color: '#0070dd'  // 蓝色
+        };
+    } else {
+        return {
+            level: 'common',
+            label: '普通级影响',
+            icon: '⚪',
+            color: '#9d9d9d'  // 灰色
+        };
+    }
+}
+
 function getConfidenceLabel(confidence) {
+    // 保留兼容性,但不再使用
     const labels = {
         'high': '高可信度',
         'medium': '中等可信度',
