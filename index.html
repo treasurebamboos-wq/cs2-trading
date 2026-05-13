@@ -6,6 +6,8 @@
     <title>CS2 饰品模拟交易</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="impact-styles.css">
+    <link rel="stylesheet" href="search-styles.css">
+    <link rel="stylesheet" href="leaderboard-styles.css">
     <!-- 轻量级金融图表库 -->
     <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
@@ -215,12 +217,40 @@
 
             <!-- 排行榜页 -->
             <section class="tab-content" id="leaderboard">
-                <div class="leaderboard-tabs">
-                    <button class="lb-tab active" data-lb="profit">收益榜</button>
-                    <button class="lb-tab" data-lb="value">资产榜</button>
+                <div class="leaderboard-header">
+                    <h2 class="section-title">📊 饰品排行榜</h2>
+                    <div class="ranking-period">
+                        <button class="period-btn active" data-period="24h">24小时</button>
+                        <button class="period-btn" data-period="7d">7天</button>
+                        <button class="period-btn" data-period="30d">30天</button>
+                    </div>
                 </div>
-                <div class="leaderboard-list" id="leaderboardList">
+
+                <div class="leaderboard-tabs">
+                    <button class="lb-tab active" data-lb="gainers">
+                        <span class="tab-icon">📈</span>
+                        <span class="tab-label">涨幅榜</span>
+                    </button>
+                    <button class="lb-tab" data-lb="losers">
+                        <span class="tab-icon">📉</span>
+                        <span class="tab-label">跌幅榜</span>
+                    </button>
+                    <button class="lb-tab" data-lb="volume">
+                        <span class="tab-icon">🔥</span>
+                        <span class="tab-label">交易量</span>
+                    </button>
+                    <button class="lb-tab" data-lb="expensive">
+                        <span class="tab-icon">💎</span>
+                        <span class="tab-label">最贵</span>
+                    </button>
+                </div>
+
+                <div class="ranking-list" id="rankingList">
                     <!-- 排行榜将由JS动态生成 -->
+                    <div class="ranking-loading">
+                        <div class="loading-spinner"></div>
+                        <div class="loading-text">加载中...</div>
+                    </div>
                 </div>
             </section>
         </main>
