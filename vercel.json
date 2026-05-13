@@ -11,6 +11,9 @@
     },
     "api/rarity-fix.js": {
       "maxDuration": 60
+    },
+    "api/event-impacts.js": {
+      "maxDuration": 10
     }
   },
   "rewrites": [

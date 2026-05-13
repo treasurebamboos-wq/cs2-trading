@@ -1,4 +1,6 @@
 // Vercel Serverless Function - 爬取 HLTV 和 CS2 官方新闻
+import { matchEventByTitle } from './event-impacts.js';
+
 export default async function handler(req, res) {
     // 设置CORS头
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -41,11 +43,27 @@ export default async function handler(req, res) {
         // 限制数量
         const finalNews = allNews.slice(0, parseInt(limit) || 20);
 
+        // 为每条新闻匹配相关的价格影响事件
+        const newsWithImpacts = finalNews.map(item => {
+            const eventImpact = matchEventByTitle(item.title);
+            return {
+                ...item,
+                priceImpact: eventImpact ? {
+                    hasImpact: true,
+                    eventId: eventImpact.id,
+                    eventTitle: eventImpact.title,
+                    impactSummary: generateImpactSummary(eventImpact)
+                } : {
+                    hasImpact: false
+                }
+            };
+        });
+
         res.status(200).json({
             success: true,
-            count: finalNews.length,
+            count: newsWithImpacts.length,
             timestamp: Date.now(),
-            news: finalNews
+            news: newsWithImpacts
         });
 
     } catch (error) {
@@ -216,4 +234,55 @@ async function fetchCS2News(limit) {
     }
 
     return news;
+}
+
+// 生成价格影响摘要
+function generateImpactSummary(eventImpact) {
+    if (!eventImpact || !eventImpact.impacts) {
+        return null;
+    }
+
+    const summary = {
+        affectedCategories: eventImpact.impacts.length,
+        majorImpacts: [],
+        overallTrend: 'mixed' // up/down/mixed/stable
+    };
+
+    // 统计涨跌情况
+    let upCount = 0;
+    let downCount = 0;
+    let totalPercentage = 0;
+
+    eventImpact.impacts.forEach(impact => {
+        const trend = impact.overall.trend;
+        const percentage = impact.overall.percentage;
+
+        summary.majorImpacts.push({
+            category: impact.categoryLabel,
+            icon: impact.icon,
+            trend: trend,
+            percentage: percentage,
+            confidence: impact.overall.confidence
+        });
+
+        if (trend === 'up') upCount++;
+        else if (trend === 'down') downCount++;
+
+        totalPercentage += Math.abs(percentage);
+    });
+
+    // 判断总体趋势
+    if (upCount > downCount * 2) {
+        summary.overallTrend = 'up';
+    } else if (downCount > upCount * 2) {
+        summary.overallTrend = 'down';
+    } else if (upCount === 0 && downCount === 0) {
+        summary.overallTrend = 'stable';
+    } else {
+        summary.overallTrend = 'mixed';
+    }
+
+    summary.averageImpact = totalPercentage / eventImpact.impacts.length;
+
+    return summary;
 }

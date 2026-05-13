@@ -1,0 +1,301 @@
+/* 价格影响功能样式 */
+
+/* 新闻卡片影响标签 */
+.news-impact-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+}
+
+.news-card.has-impact {
+    border-left: 3px solid #f59e0b;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.news-card.has-impact:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.2);
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    background: linear-gradient(135deg, #f59e0b, #eab308);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.modal-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    transform: rotate(90deg);
+}
+
+/* 事件信息 */
+.event-info {
+    padding: 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.event-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.event-meta {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.event-type {
+    padding: 4px 12px;
+    border-radius: 12px;
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.event-description {
+    font-size: 14px;
+    color: #cbd5e1;
+    line-height: 1.6;
+    margin: 0;
+}
+
+/* 影响列表容器 */
+.impacts-container {
+    padding: 24px;
+}
+
+/* 影响分类 */
+.impact-category {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border-left: 4px solid #3b82f6;
+    transition: all 0.3s ease;
+}
+
+.impact-category:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(5px);
+}
+
+.impact-category-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.impact-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+
+.impact-category-header h3 {
+    margin: 0;
+    font-size: 18px;
+    flex: 1;
+    color: #fff;
+}
+
+.impact-overall {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.impact-overall.trend-up {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+}
+
+.impact-overall.trend-down {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+}
+
+.impact-overall.trend-stable {
+    background: rgba(107, 114, 128, 0.15);
+    color: #9ca3af;
+}
+
+.confidence-badge {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 4px;
+}
+
+.confidence-badge.high {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+}
+
+.confidence-badge.medium {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.confidence-badge.low {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+.impact-reason {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0 0 16px 0;
+    line-height: 1.6;
+}
+
+/* 子分类 */
+.impact-subcategories {
+    display: grid;
+    gap: 8px;
+}
+
+.impact-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.impact-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(3px);
+}
+
+.impact-item-name {
+    font-size: 14px;
+    color: #e2e8f0;
+}
+
+.impact-item-value {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 12px;
+}
+
+.impact-item-value.trend-up {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.impact-item-value.trend-down {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.impact-item-value.trend-stable {
+    color: #9ca3af;
+    background: rgba(107, 114, 128, 0.1);
+}
+
+/* 免责声明 */
+.impact-disclaimer {
+    padding: 16px 24px;
+    margin: 0;
+    background: rgba(245, 158, 11, 0.1);
+    border-top: 1px solid rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    font-size: 13px;
+    text-align: center;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .event-meta {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .impact-category-header {
+        flex-wrap: wrap;
+    }
+
+    .impact-icon {
+        font-size: 24px;
+    }
+}

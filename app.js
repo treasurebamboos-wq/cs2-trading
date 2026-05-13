@@ -935,14 +935,23 @@ function renderNews() {
 
         const sourceClass = news.source;
 
+        // 检测是否有价格影响数据
+        const hasPriceImpact = news.priceImpact && news.priceImpact.hasImpact;
+        const impactBadge = hasPriceImpact ? renderImpactBadge(news.priceImpact.impactSummary) : '';
+
+        const clickHandler = hasPriceImpact
+            ? `showPriceImpactDetail('${news.priceImpact.eventId}')`
+            : `openNewsUrl('${news.url}')`;
+
         return `
-            <div class="news-card ${news.hot ? 'hot' : ''}" onclick="openNewsUrl('${news.url}')">
+            <div class="news-card ${news.hot ? 'hot' : ''} ${hasPriceImpact ? 'has-impact' : ''}" onclick="${clickHandler}">
                 <div class="news-icon">${news.image}</div>
                 <div class="news-content">
                     <div class="news-meta">
                         <span class="news-source ${sourceClass}">${sourceLabel}</span>
                         <span class="news-time">${formatTimeAgo(news.time)}</span>
                         ${news.hot ? '<span class="news-hot">🔥 热门</span>' : ''}
+                        ${impactBadge}
                     </div>
                     <h4 class="news-title">${news.title}</h4>
                     ${news.summary ? `<p class="news-summary">${news.summary}</p>` : ''}
@@ -2239,3 +2248,167 @@ window.debugItems = function() {
 
     return stats;
 };
+
+// ==================== 价格影响功能 ====================
+
+// 渲染价格影响标签
+function renderImpactBadge(summary) {
+    if (!summary) return '';
+
+    const trendIcons = {
+        'up': '📈',
+        'down': '📉',
+        'mixed': '📊',
+        'stable': '➡️'
+    };
+
+    const trendLabels = {
+        'up': '普涨',
+        'down': '普跌',
+        'mixed': '涨跌互现',
+        'stable': '影响较小'
+    };
+
+    const trendColors = {
+        'up': '#10b981',
+        'down': '#ef4444',
+        'mixed': '#f59e0b',
+        'stable': '#6b7280'
+    };
+
+    const icon = trendIcons[summary.overallTrend] || '📊';
+    const label = trendLabels[summary.overallTrend] || '影响分析';
+    const color = trendColors[summary.overallTrend] || '#6b7280';
+
+    return `<span class="news-impact-badge" style="color: ${color}">${icon} ${label}</span>`;
+}
+
+// 显示价格影响详情
+async function showPriceImpactDetail(eventId) {
+    showToast('正在加载价格影响分析...');
+
+    try {
+        const response = await fetch(`${API_BASE}/event-impacts?eventId=${eventId}`);
+        const data = await response.json();
+
+        if (!data.success || !data.event) {
+            showToast('❌ 数据加载失败');
+            return;
+        }
+
+        renderPriceImpactModal(data.event);
+    } catch (error) {
+        console.error('加载价格影响数据失败:', error);
+        showToast('❌ 网络错误');
+    }
+}
+
+// 渲染价格影响弹窗
+function renderPriceImpactModal(event) {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.onclick = (e) => {
+        if (e.target === modal) closeImpactModal();
+    };
+
+    const impactsHTML = event.impacts.map(impact => `
+        <div class="impact-category">
+            <div class="impact-category-header">
+                <span class="impact-icon">${impact.icon}</span>
+                <h3>${impact.categoryLabel}</h3>
+                <span class="impact-overall ${getTrendClass(impact.overall.trend)}">
+                    ${getTrendIcon(impact.overall.trend)} 
+                    ${formatPercentage(impact.overall.percentage)}
+                    <span class="confidence-badge ${impact.overall.confidence}">${getConfidenceLabel(impact.overall.confidence)}</span>
+                </span>
+            </div>
+            <p class="impact-reason">${impact.overall.reason}</p>
+            
+            ${impact.subcategories && impact.subcategories.length > 0 ? `
+                <div class="impact-subcategories">
+                    ${impact.subcategories.map(sub => `
+                        <div class="impact-item">
+                            <div class="impact-item-name">${sub.label}</div>
+                            <div class="impact-item-value ${getTrendClass(sub.trend)}">
+                                ${getTrendIcon(sub.trend)} ${formatPercentage(sub.percentage)}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="modal-content impact-modal">
+            <div class="modal-header">
+                <h2>💰 价格影响分析</h2>
+                <button class="modal-close" onclick="closeImpactModal()">✕</button>
+            </div>
+            
+            <div class="event-info">
+                <div class="event-title">${event.title}</div>
+                <div class="event-meta">
+                    <span class="event-date">📅 ${event.date}</span>
+                    <span class="event-type">${getEventTypeLabel(event.type)}</span>
+                </div>
+                <p class="event-description">${event.description}</p>
+            </div>
+
+            <div class="impacts-container">
+                ${impactsHTML}
+            </div>
+
+            <div class="impact-disclaimer">
+                ⚠️ 价格预测基于历史数据和市场规律，仅供参考
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('active'), 10);
+}
+
+// 关闭影响分析弹窗
+function closeImpactModal() {
+    const modal = document.querySelector('.modal-overlay');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+// 辅助函数
+function getTrendClass(trend) {
+    return trend === 'up' ? 'trend-up' : trend === 'down' ? 'trend-down' : 'trend-stable';
+}
+
+function getTrendIcon(trend) {
+    const icons = { 'up': '↑', 'down': '↓', 'stable': '→' };
+    return icons[trend] || '→';
+}
+
+function formatPercentage(percentage) {
+    const sign = percentage > 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(1)}%`;
+}
+
+function getConfidenceLabel(confidence) {
+    const labels = {
+        'high': '高可信度',
+        'medium': '中等可信度',
+        'low': '低可信度'
+    };
+    return labels[confidence] || '';
+}
+
+function getEventTypeLabel(type) {
+    const labels = {
+        'case_drop_change': '📦 箱子掉落变更',
+        'feature_release': '✨ 新功能发布',
+        'major_release': '🚀 重大更新',
+        'operation': '🎯 大行动',
+        'balance_update': '⚖️ 平衡性调整'
+    };
+    return labels[type] || '📰 游戏更新';
+}
